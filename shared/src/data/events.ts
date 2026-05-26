@@ -1,0 +1,253 @@
+import type { GameEventDefinition } from '../types/events.js'
+
+export const EVENT_DEFINITIONS: GameEventDefinition[] = [
+  {
+    id: 'car_breakdown',
+    title: 'Bíllinn bilar',
+    description: 'Bíllinn þinn bilar á leiðinni í vinnu. Dýr viðgerð bíður.',
+    icon: '🚗',
+    trigger: { type: 'random', probability: 0.05, luckModified: true },
+    isUniquePerGame: false,
+    cooldownWeeks: 26,
+    choices: [
+      {
+        id: 'repair',
+        label: 'Láta gera við',
+        description: 'Borga viðgerðina',
+        moneyRequired: 3000,
+        effects: [],
+        moneyEffect: -3000,
+      },
+      {
+        id: 'cheap_repair',
+        label: 'Ódýr viðgerð',
+        description: 'Viðgerð sem endist ekki lengi',
+        moneyRequired: 1000,
+        effects: [{ stat: 'stress', value: 5 }],
+        moneyEffect: -1000,
+      },
+      {
+        id: 'sell_car',
+        label: 'Selja bílinn',
+        description: 'Þú selur bílinn og ferðast á almenningssamgöngum',
+        effects: [{ stat: 'wellbeing', value: -5 }],
+        moneyEffect: 1500,
+      },
+    ],
+  },
+  {
+    id: 'unexpected_bill',
+    title: 'Óvænt reikningur',
+    description: 'Óvænt útgjöld koma upp — tannlæknir, heimilistæki eða annað.',
+    icon: '📄',
+    trigger: { type: 'random', probability: 0.08, luckModified: true },
+    isUniquePerGame: false,
+    cooldownWeeks: 16,
+    choices: [
+      {
+        id: 'pay',
+        label: 'Greiða',
+        description: 'Takast á við málið',
+        moneyRequired: 2000,
+        effects: [],
+        moneyEffect: -2000,
+      },
+      {
+        id: 'delay',
+        label: 'Fresta greiðslu',
+        description: 'Fresta — mun kosta meira seinna',
+        effects: [{ stat: 'stress', value: 10 }, { stat: 'reputation', value: -3 }],
+        moneyEffect: 0,
+      },
+    ],
+  },
+  {
+    id: 'job_offer',
+    title: 'Vinnutilboð',
+    description: 'Eitthver af tengslaneti þínu hefur samband með vinnutilboð.',
+    icon: '📞',
+    trigger: {
+      type: 'stat_threshold',
+      probability: 0.2,
+      luckModified: true,
+      conditions: [{ stat: 'network', operator: 'gte', value: 40 }],
+    },
+    isUniquePerGame: false,
+    cooldownWeeks: 12,
+    choices: [
+      {
+        id: 'accept',
+        label: 'Þiggja tilboðið',
+        description: 'Skipta um vinnu',
+        effects: [{ stat: 'career', value: 5 }, { stat: 'network', value: 5 }],
+        moneyEffect: 0,
+      },
+      {
+        id: 'decline',
+        label: 'Hafna',
+        description: 'Vera kyrr þar sem þú ert',
+        effects: [{ stat: 'network', value: 2 }],
+        moneyEffect: 0,
+      },
+    ],
+  },
+  {
+    id: 'illness',
+    title: 'Veikindi',
+    description: 'Þú veikist og getur ekki unnið í nokkrar vikur.',
+    icon: '🤒',
+    trigger: {
+      type: 'stat_low',
+      probability: 0.12,
+      luckModified: true,
+      conditions: [{ stat: 'wellbeing', operator: 'lte', value: 30 }],
+    },
+    isUniquePerGame: false,
+    cooldownWeeks: 20,
+    choices: [
+      {
+        id: 'rest',
+        label: 'Hvílast vel',
+        description: 'Taka sér tíma til að ná sér',
+        effects: [{ stat: 'wellbeing', value: 20 }, { stat: 'stress', value: -15 }],
+        moneyEffect: -1500,
+      },
+      {
+        id: 'push_through',
+        label: 'Vinna samt',
+        description: 'Þú reynir að halda áfram',
+        effects: [{ stat: 'wellbeing', value: -15 }, { stat: 'stress', value: 20 }],
+        moneyEffect: 0,
+      },
+    ],
+  },
+  {
+    id: 'windfall',
+    title: 'Óvænt arfur',
+    description: 'Fjarlægur ættingi lætur þér eftir arf.',
+    icon: '🎁',
+    trigger: { type: 'random', probability: 0.02, luckModified: true },
+    isUniquePerGame: true,
+    cooldownWeeks: 999,
+    choices: [
+      {
+        id: 'invest',
+        label: 'Fjárfesta',
+        description: 'Nota peningana til að fjárfesta',
+        effects: [{ stat: 'wealth', value: 10 }],
+        moneyEffect: 20000,
+      },
+      {
+        id: 'spend',
+        label: 'Nota í daglegt líf',
+        description: 'Bæta lífsgæði',
+        effects: [{ stat: 'wellbeing', value: 15 }, { stat: 'stress', value: -10 }],
+        moneyEffect: 10000,
+      },
+    ],
+  },
+  {
+    id: 'promotion_chance',
+    title: 'Tækifæri til kynningar',
+    description: 'Yfirmaðurinn þinn gefur þér tækifæri til að sanna þig.',
+    icon: '📈',
+    trigger: {
+      type: 'job_related',
+      probability: 0.15,
+      luckModified: true,
+      conditions: [{ stat: 'career', operator: 'gte', value: 40 }],
+    },
+    isUniquePerGame: false,
+    cooldownWeeks: 20,
+    choices: [
+      {
+        id: 'accept_challenge',
+        label: 'Taka upp hannskaann',
+        description: 'Taka viðbótarverkefni',
+        effects: [
+          { stat: 'career', value: 10 },
+          { stat: 'reputation', value: 5 },
+          { stat: 'stress', value: 15 },
+        ],
+        moneyEffect: 2000,
+      },
+      {
+        id: 'decline_challenge',
+        label: 'Hafna',
+        description: 'Viðhalda jafnvægi',
+        effects: [{ stat: 'career', value: -2 }],
+        moneyEffect: 0,
+      },
+    ],
+  },
+  {
+    id: 'burnout',
+    title: 'Þreyta og útbruni',
+    description: 'Streitan hefur safnast upp. Þú ert að þjást af útbruna.',
+    icon: '😰',
+    trigger: {
+      type: 'stat_threshold',
+      probability: 1.0,
+      luckModified: false,
+      conditions: [{ stat: 'stress', operator: 'gte', value: 80 }],
+    },
+    isUniquePerGame: false,
+    cooldownWeeks: 8,
+    choices: [
+      {
+        id: 'take_leave',
+        label: 'Fara í orlofsleyfi',
+        description: 'Taka frí til að ná sér',
+        effects: [
+          { stat: 'stress', value: -40 },
+          { stat: 'wellbeing', value: 20 },
+          { stat: 'career', value: -5 },
+        ],
+        moneyEffect: -5000,
+      },
+      {
+        id: 'push_harder',
+        label: 'Þrýsta áfram',
+        description: 'Reynt að berjast gegn þreytu',
+        effects: [
+          { stat: 'stress', value: 15 },
+          { stat: 'wellbeing', value: -20 },
+          { stat: 'reputation', value: -5 },
+        ],
+        moneyEffect: 0,
+      },
+    ],
+  },
+  {
+    id: 'networking_event',
+    title: 'Tengslaviðburður',
+    description: 'Þú ert boðaður á networking viðburð í greininni.',
+    icon: '🤝',
+    trigger: { type: 'random', probability: 0.1, luckModified: true },
+    isUniquePerGame: false,
+    cooldownWeeks: 10,
+    choices: [
+      {
+        id: 'attend',
+        label: 'Mæta',
+        description: 'Mæta og kynna sig',
+        effects: [
+          { stat: 'network', value: 10 },
+          { stat: 'reputation', value: 3 },
+        ],
+        moneyEffect: -500,
+      },
+      {
+        id: 'skip',
+        label: 'Sleppa',
+        description: 'Vera heima',
+        effects: [],
+        moneyEffect: 0,
+      },
+    ],
+  },
+]
+
+export function getEventById(id: string): GameEventDefinition | undefined {
+  return EVENT_DEFINITIONS.find(e => e.id === id)
+}

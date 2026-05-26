@@ -1,0 +1,247 @@
+import type { JobDefinition } from '../types/job.js'
+
+export const JOB_DEFINITIONS: JobDefinition[] = [
+  // --- TIER 1 ---
+  {
+    id: 'cashier',
+    title: 'Gjaldkeri',
+    sector: 'retail',
+    tier: 1,
+    weeklySalary: 800,
+    timeCostPerWeek: 6,
+    stressGainPerWeek: 5,
+    requirements: {},
+    weeklyEffects: [{ stat: 'career', value: 1 }],
+    description: 'Vinna í búð',
+    icon: '🛒',
+  },
+  {
+    id: 'waiter',
+    title: 'Þjónn',
+    sector: 'service',
+    tier: 1,
+    weeklySalary: 700,
+    timeCostPerWeek: 6,
+    stressGainPerWeek: 8,
+    requirements: {},
+    weeklyEffects: [
+      { stat: 'network', value: 1 },
+      { stat: 'career', value: 1 },
+    ],
+    description: 'Þjónusta á veitingastað',
+    icon: '🍽️',
+  },
+  {
+    id: 'manual_labor',
+    title: 'Handavinna',
+    sector: 'trades',
+    tier: 1,
+    weeklySalary: 900,
+    timeCostPerWeek: 7,
+    stressGainPerWeek: 10,
+    requirements: {},
+    weeklyEffects: [
+      { stat: 'wellbeing', value: -1 },
+      { stat: 'career', value: 1 },
+    ],
+    description: 'Erfiðar líkamlegar vinnur',
+    icon: '🔨',
+  },
+
+  // --- TIER 2 ---
+  {
+    id: 'office_worker',
+    title: 'Skrifstofumaður',
+    sector: 'business',
+    tier: 2,
+    weeklySalary: 1500,
+    timeCostPerWeek: 6,
+    stressGainPerWeek: 6,
+    requirements: { knowledge: 30 },
+    weeklyEffects: [
+      { stat: 'career', value: 2 },
+      { stat: 'network', value: 1 },
+    ],
+    description: 'Almenn skrifstofuvinna',
+    icon: '🖥️',
+  },
+  {
+    id: 'nurse',
+    title: 'Hjúkrunarfræðingur',
+    sector: 'healthcare',
+    tier: 2,
+    weeklySalary: 1800,
+    timeCostPerWeek: 7,
+    stressGainPerWeek: 12,
+    requirements: { knowledge: 50 },
+    weeklyEffects: [
+      { stat: 'career', value: 2 },
+      { stat: 'reputation', value: 1 },
+    ],
+    description: 'Hjúkrun sjúklinga á sjúkrahúsi',
+    icon: '🏥',
+  },
+  {
+    id: 'teacher',
+    title: 'Kennari',
+    sector: 'education',
+    tier: 2,
+    weeklySalary: 1400,
+    timeCostPerWeek: 6,
+    stressGainPerWeek: 8,
+    requirements: { knowledge: 50 },
+    weeklyEffects: [
+      { stat: 'knowledge', value: 1 },
+      { stat: 'reputation', value: 2 },
+      { stat: 'network', value: 1 },
+    ],
+    description: 'Kennir nemendum',
+    icon: '📚',
+  },
+
+  // --- TIER 3 ---
+  {
+    id: 'programmer',
+    title: 'Forritari',
+    sector: 'tech',
+    tier: 3,
+    weeklySalary: 3000,
+    timeCostPerWeek: 6,
+    stressGainPerWeek: 7,
+    requirements: { knowledge: 60, career: 30 },
+    weeklyEffects: [
+      { stat: 'career', value: 3 },
+      { stat: 'knowledge', value: 1 },
+    ],
+    description: 'Smíðar hugbúnað',
+    icon: '💻',
+  },
+  {
+    id: 'accountant',
+    title: 'Bókhaldari',
+    sector: 'business',
+    tier: 3,
+    weeklySalary: 2500,
+    timeCostPerWeek: 6,
+    stressGainPerWeek: 6,
+    requirements: { knowledge: 55, career: 20 },
+    weeklyEffects: [
+      { stat: 'career', value: 2 },
+      { stat: 'wealth', value: 2 },
+    ],
+    description: 'Sér um fjárhag fyrirtækja',
+    icon: '📊',
+  },
+  {
+    id: 'designer',
+    title: 'Hönnuður',
+    sector: 'arts',
+    tier: 3,
+    weeklySalary: 2200,
+    timeCostPerWeek: 6,
+    stressGainPerWeek: 5,
+    requirements: { knowledge: 40, reputation: 20 },
+    weeklyEffects: [
+      { stat: 'career', value: 2 },
+      { stat: 'reputation', value: 2 },
+    ],
+    description: 'Hönnun og skapandi vinna',
+    icon: '🎨',
+  },
+
+  // --- TIER 4 ---
+  {
+    id: 'senior_developer',
+    title: 'Yfirforritari',
+    sector: 'tech',
+    tier: 4,
+    weeklySalary: 5000,
+    timeCostPerWeek: 6,
+    stressGainPerWeek: 10,
+    requirements: { knowledge: 75, career: 55 },
+    weeklyEffects: [
+      { stat: 'career', value: 3 },
+      { stat: 'reputation', value: 2 },
+      { stat: 'network', value: 1 },
+    ],
+    description: 'Leiðtogi þróunarteymis',
+    icon: '🚀',
+  },
+  {
+    id: 'doctor',
+    title: 'Læknir',
+    sector: 'healthcare',
+    tier: 4,
+    weeklySalary: 6000,
+    timeCostPerWeek: 7,
+    stressGainPerWeek: 15,
+    requirements: { knowledge: 80, career: 50 },
+    weeklyEffects: [
+      { stat: 'reputation', value: 3 },
+      { stat: 'network', value: 2 },
+    ],
+    description: 'Læknir sjúklinga',
+    icon: '👨‍⚕️',
+  },
+  {
+    id: 'manager',
+    title: 'Stjórnandi',
+    sector: 'business',
+    tier: 4,
+    weeklySalary: 4500,
+    timeCostPerWeek: 7,
+    stressGainPerWeek: 14,
+    requirements: { career: 60, network: 50, reputation: 40 },
+    weeklyEffects: [
+      { stat: 'career', value: 3 },
+      { stat: 'network', value: 3 },
+      { stat: 'reputation', value: 2 },
+    ],
+    description: 'Stjórnar deild eða fyrirtæki',
+    icon: '👔',
+  },
+
+  // --- TIER 5 ---
+  {
+    id: 'cto',
+    title: 'Tæknistjóri (CTO)',
+    sector: 'tech',
+    tier: 5,
+    weeklySalary: 9000,
+    timeCostPerWeek: 8,
+    stressGainPerWeek: 18,
+    requirements: { knowledge: 90, career: 80, reputation: 60 },
+    weeklyEffects: [
+      { stat: 'reputation', value: 4 },
+      { stat: 'network', value: 3 },
+      { stat: 'wealth', value: 3 },
+    ],
+    description: 'Æðsti tæknistjóri',
+    icon: '🏢',
+  },
+  {
+    id: 'entrepreneur',
+    title: 'Frumkvöðull',
+    sector: 'business',
+    tier: 5,
+    weeklySalary: 2000,
+    timeCostPerWeek: 9,
+    stressGainPerWeek: 20,
+    requirements: { career: 50, network: 60, reputation: 50 },
+    weeklyEffects: [
+      { stat: 'career', value: 5 },
+      { stat: 'reputation', value: 3 },
+      { stat: 'wealth', value: -2 },
+    ],
+    description: 'Rekur eigið fyrirtæki — há áhætta, stór möguleikar',
+    icon: '💡',
+  },
+]
+
+export function getJobById(id: string): JobDefinition | undefined {
+  return JOB_DEFINITIONS.find(j => j.id === id)
+}
+
+export function getJobsByTier(tier: number): JobDefinition[] {
+  return JOB_DEFINITIONS.filter(j => j.tier === tier)
+}
