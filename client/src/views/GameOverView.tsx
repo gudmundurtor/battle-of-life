@@ -2,6 +2,7 @@ import { GOAL_DEFINITIONS } from '@jones/shared'
 import type { GameState } from '@jones/shared'
 import { computeScore } from '@jones/shared'
 import { useGameStore } from '../store/gameStore'
+import { useT } from '../i18n'
 import { Button } from '../components/UI/Button'
 import { StatBar } from '../components/HUD/StatBar'
 
@@ -11,6 +12,7 @@ interface GameOverViewProps {
 
 export function GameOverView({ gameState }: GameOverViewProps) {
   useGameStore()
+  const t = useT()
 
   const players = gameState.playerOrder.map(id => ({
     player: gameState.players[id],
@@ -28,10 +30,10 @@ export function GameOverView({ gameState }: GameOverViewProps) {
         <div className="text-center">
           <div className="text-6xl mb-3">🏆</div>
           <h1 className="text-3xl font-bold text-slate-100">
-            {winner.player.name} vann!
+            {t.gameOver.wonTitle(winner.player.name)}
           </h1>
           <p className="text-slate-500 mt-1">
-            {winner.score} stig · Ár {gameState.year}
+            {t.gameOver.scoreAndYear(winner.score, gameState.year)}
           </p>
         </div>
 
@@ -55,12 +57,14 @@ export function GameOverView({ gameState }: GameOverViewProps) {
                   />
                   <span className="font-semibold text-slate-200">
                     {player.name}
-                    {player.isAI && <span className="text-xs text-slate-500 ml-1">(AI)</span>}
+                    {player.isAI && <span className="text-xs text-slate-500 ml-1">({t.gameOver.ai})</span>}
                   </span>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-lg" style={{ color: player.color }}>{score}p</div>
-                  <div className="text-xs text-slate-500">{player.money.toLocaleString()} kr.</div>
+                  <div className="font-bold text-lg" style={{ color: player.color }}>
+                    {score}{t.gameOver.points}
+                  </div>
+                  <div className="text-xs text-slate-500">{player.money.toLocaleString()} {t.gameOver.money}</div>
                 </div>
               </div>
 
@@ -75,6 +79,7 @@ export function GameOverView({ gameState }: GameOverViewProps) {
               <div className="flex flex-wrap gap-1.5">
                 {player.goalIds.map(goalId => {
                   const def = GOAL_DEFINITIONS.find(g => g.id === goalId)
+                  const gt = t.goals[goalId]
                   const completed = player.completedGoalIds.includes(goalId)
                   if (!def) return null
                   return (
@@ -86,7 +91,7 @@ export function GameOverView({ gameState }: GameOverViewProps) {
                           : 'bg-slate-800 text-slate-500 line-through'
                       }`}
                     >
-                      {def.icon} {def.name}
+                      {def.icon} {gt?.name ?? def.name}
                     </span>
                   )
                 })}
@@ -96,7 +101,7 @@ export function GameOverView({ gameState }: GameOverViewProps) {
         </div>
 
         <Button fullWidth size="lg" onClick={() => window.location.reload()}>
-          Spila aftur
+          {t.gameOver.playAgain}
         </Button>
       </div>
     </div>

@@ -1,6 +1,8 @@
 import { JOB_DEFINITIONS, BOARD_LOCATIONS } from '@jones/shared'
-import type { GameState } from '@jones/shared'
+import type { GameState, BoardLocation } from '@jones/shared'
 import { useGameStore } from '../../store/gameStore'
+import { useT } from '../../i18n'
+import { useEscapeKey } from '../../utils/useEscapeKey'
 import { Button } from '../UI/Button'
 
 interface JobPickerDialogProps {
@@ -11,20 +13,40 @@ interface JobPickerDialogProps {
 
 export function JobPickerDialog({ gameState, localPlayerId, locationId }: JobPickerDialogProps) {
   const { applyForJob, closeJobPicker } = useGameStore()
+  const t = useT()
+  useEscapeKey(closeJobPicker)
   const player = gameState.players[localPlayerId]
   const location = BOARD_LOCATIONS.find(l => l.id === locationId)
 
-  // Which jobs are available at this location?
-  const availableJobIds = location?.jobIds ?? JOB_DEFINITIONS.map(j => j.id)
+  // Map every job to the workplace where it can actually be performed, so the
+  // player knows where to go to work after being hired (esp. at the job center).
+  const workplaceByJob = new Map<string, BoardLocation>()
+  for (const loc of BOARD_LOCATIONS) {
+    for (const jid of loc.jobIds ?? []) {
+      if (!workplaceByJob.has(jid)) workplaceByJob.set(jid, loc)
+    }
+  }
+
+  // At a specific workplace show its own jobs; at the job center list every job
+  // that actually has a workplace to go to (skip unreachable/orphan jobs).
+  const availableJobIds = location?.jobIds ?? [...workplaceByJob.keys()]
   const jobs = JOB_DEFINITIONS.filter(j => availableJobIds.includes(j.id))
+
+  // Only show the workplace hint when this dialog isn't already tied to one
+  // specific workplace (i.e. when applying from the employment office).
+  const showWorkplace = !location?.jobIds
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="bg-slate-900 border border-slate-600 rounded-2xl max-w-lg w-full p-6 max-h-[80vh] flex flex-col animate-slide">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h2 className="text-lg font-bold text-slate-100">Laus störf</h2>
-            {location && <p className="text-sm text-slate-500">{location.icon} {location.name}</p>}
+            <h2 className="text-lg font-bold text-slate-100">{t.jobPicker.title}</h2>
+            {location && (
+              <p className="text-sm text-slate-500">
+                {location.icon} {t.locations[location.id] ?? location.name}
+              </p>
+            )}
           </div>
           <button onClick={closeJobPicker} className="text-slate-500 hover:text-slate-300 text-xl cursor-pointer">×</button>
         </div>
@@ -35,6 +57,8 @@ export function JobPickerDialog({ gameState, localPlayerId, locationId }: JobPic
               ([stat, min]) => (player.stats as unknown as Record<string, number>)[stat] >= (min as number),
             )
             const isCurrent = player.job?.definitionId === job.id
+            const jt = t.jobs[job.id]
+            const workplace = workplaceByJob.get(job.id)
 
             return (
               <button
@@ -54,24 +78,30 @@ export function JobPickerDialog({ gameState, localPlayerId, locationId }: JobPic
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{job.icon}</span>
                     <div>
-                      <div className="font-medium text-slate-200 text-sm">{job.title}</div>
-                      <div className="text-xs text-slate-500">{job.description}</div>
+                      <div className="font-medium text-slate-200 text-sm">{jt?.title ?? job.title}</div>
+                      <div className="text-xs text-slate-500">{jt?.description ?? job.description}</div>
                     </div>
                   </div>
                   <div className="text-right shrink-0 ml-2">
                     <div className="text-sm font-mono text-yellow-400">
-                      {job.weeklySalary.toLocaleString()} kr/v
+                      {job.weeklySalary.toLocaleString()} {t.jobPicker.perWeek}
                     </div>
-                    <div className="text-xs text-slate-500">Stig {job.tier}</div>
+                    <div className="text-xs text-slate-500">{t.jobPicker.tier} {job.tier}</div>
                   </div>
                 </div>
 
-                {/* Requirements */}
+                {showWorkplace && workplace && (
+                  <div className="text-xs text-slate-400 mt-1">
+                    📍 {t.jobPicker.workplace}: {workplace.icon} {t.locations[workplace.id] ?? workplace.name}
+                  </div>
+                )}
+
                 {Object.keys(job.requirements).length > 0 && (
                   <div className="flex gap-2 mt-2 flex-wrap">
                     {Object.entries(job.requirements).map(([stat, min]) => {
                       const current = (player.stats as unknown as Record<string, number>)[stat] ?? 0
                       const ok = current >= (min as number)
+                      const statLabel = t.stats[stat as keyof typeof t.stats] ?? stat
                       return (
                         <span
                           key={stat}
@@ -79,7 +109,7 @@ export function JobPickerDialog({ gameState, localPlayerId, locationId }: JobPic
                             ok ? 'bg-green-900/50 text-green-300' : 'bg-red-900/50 text-red-300'
                           }`}
                         >
-                          {stat} {min}+
+                          {statLabel} {min}+
                         </span>
                       )
                     })}
@@ -87,7 +117,7 @@ export function JobPickerDialog({ gameState, localPlayerId, locationId }: JobPic
                 )}
 
                 {isCurrent && (
-                  <div className="text-xs text-blue-400 mt-1">✓ Núverandi starf</div>
+                  <div className="text-xs text-blue-400 mt-1">{t.jobPicker.currentJob}</div>
                 )}
               </button>
             )
@@ -96,7 +126,7 @@ export function JobPickerDialog({ gameState, localPlayerId, locationId }: JobPic
 
         <div className="pt-3 border-t border-slate-800 mt-3">
           <Button variant="ghost" fullWidth onClick={closeJobPicker}>
-            Hætta við
+            {t.jobPicker.cancel}
           </Button>
         </div>
       </div>

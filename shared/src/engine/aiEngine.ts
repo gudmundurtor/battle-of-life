@@ -2,7 +2,12 @@ import type { GameState, PlayerAction, AIDifficulty } from '../types/game.js'
 import type { PlayerState } from '../types/player.js'
 import type { GoalDefinition } from '../types/goals.js'
 import { GOAL_DEFINITIONS } from '../data/goals.js'
-import { getLocationById } from '../data/board.js'
+import { BOARD_LOCATIONS } from '../data/board.js'
+import { getMenuItemsByLocation } from '../data/menus.js'
+import { getJobById, JOB_DEFINITIONS } from '../data/jobs.js'
+import type { BoardLocation } from '../types/board.js'
+import { getWeeklyRent, getUpgradeTargetTier, getHousingLocationId } from '../data/housing.js'
+import type { MenuItem } from '../types/menu.js'
 import type { ActionType } from '../types/board.js'
 
 export function chooseAIAction(state: GameState, aiPlayerId: string): PlayerAction | null {
@@ -21,30 +26,106 @@ export function chooseAIAction(state: GameState, aiPlayerId: string): PlayerActi
 
   scored.sort((a, b) => b.score - a.score)
 
-  // Erfiðleikastig bætir "villu" við val
+  // Erfiðleikastig bætir "villu" við val.
+  // Athygli: besta skor getur verið neikvætt (t.d. "rest" með litla streitu og
+  // neikvæða slembitölu). Þá víkkar margföldun bilið rangt og getur skilið
+  // listann eftir tóman. Reiknum þröskuld út frá fjarlægð frá besta skori í staðinn.
   const noiseFactor = difficulty === 'easy' ? 0.5 : difficulty === 'medium' ? 0.2 : 0.05
-  const topActions = scored.filter(a => a.score >= scored[0].score * (1 - noiseFactor))
+  const best = scored[0].score
+  const worst = scored[scored.length - 1].score
+  const threshold = best - Math.abs(best - worst) * noiseFactor
+  const topActions = scored.filter(a => a.score >= threshold)
+  const pool = topActions.length > 0 ? topActions : [scored[0]]
 
-  return topActions[Math.floor(Math.random() * topActions.length)].action
+  return pool[Math.floor(Math.random() * pool.length)].action
 }
 
 function generatePossibleActions(player: PlayerState, _state: GameState): PlayerAction[] {
   const actions: PlayerAction[] = []
-  const location = getLocationById(player.locationId)
-  if (!location) return actions
 
-  for (const locAction of location.actions) {
-    if (player.timeUnitsLeft < locAction.timeCost) continue
-    if (locAction.moneyCost && player.money < locAction.moneyCost) continue
+  // Keep at least one week's rent in reserve so the AI doesn't bankrupt itself.
+  const rentBuffer = getWeeklyRent(player.housingTier)
 
-    actions.push({
-      type: locAction.type,
-      locationId: player.locationId,
-      params: buildActionParams(player, locAction.type),
-    })
+  // Skoða aðgerðir á ÖLLUM reitum svo Jones geti ferðast á viðkomandi stað.
+  // Avatarinn hreyfist þegar performAction setur locationId = action.locationId.
+  for (const location of BOARD_LOCATIONS) {
+    for (const locAction of location.actions) {
+      if (player.timeUnitsLeft < locAction.timeCost) continue
+      if (locAction.moneyCost && player.money < locAction.moneyCost) continue
+
+      // 'work' skilar engu nema AI sé ráðið í starf á þessum vinnustað.
+      if (locAction.type === 'work') {
+        if (!player.job || !location.jobIds?.includes(player.job.definitionId)) continue
+      }
+
+      // Aðeins er hægt að hvíla sig heima — þ.e. í íbúðinni sem leikmaður leigir.
+      if (locAction.type === 'rest' && location.id !== getHousingLocationId(player.housingTier)) continue
+
+      // Don't spend down past the rent reserve on optional paid actions.
+      if (locAction.moneyCost && player.money - locAction.moneyCost < rentBuffer) continue
+
+      // Upgrading housing raises future rent — only do it if the AI can still
+      // cover the new (higher) rent afterwards.
+      if (locAction.type === 'upgrade_housing') {
+        const targetTier = getUpgradeTargetTier(location.id)
+        const newRent = targetTier ? getWeeklyRent(targetTier) : rentBuffer
+        if (player.money - (locAction.moneyCost ?? 0) < newRent) continue
+      }
+
+      // Máltíðir hafa breytilegt verð per rétt — sleppa ef AI hefur ekki efni á
+      // neinum rétti, annars velja rétt sem það hefur efni á.
+      let params = buildActionParams(player, locAction.type)
+      if (locAction.type === 'buy_meal') {
+        const dish = pickAffordableDish(player, location.id)
+        if (!dish) continue
+        params = { dishId: dish.id }
+      }
+
+      // Sækja um starf: velja besta starf sem AI uppfyllir kröfur fyrir á þessum
+      // vinnustað og er betra en núverandi starf. Annars sleppa (ekki sækja út í loftið).
+      if (locAction.type === 'apply_job') {
+        const job = pickJobForLocation(player, location)
+        if (!job) continue
+        params = { jobId: job }
+      }
+
+      actions.push({
+        type: locAction.type,
+        locationId: location.id,
+        params,
+      })
+    }
   }
 
   return actions
+}
+
+function pickJobForLocation(player: PlayerState, location: BoardLocation): string | undefined {
+  if (!location.jobIds || location.jobIds.length === 0) return undefined
+
+  const currentTier = player.job ? (getJobById(player.job.definitionId)?.tier ?? 0) : 0
+
+  const qualifying = location.jobIds
+    .map(id => JOB_DEFINITIONS.find(j => j.id === id))
+    .filter((j): j is NonNullable<typeof j> => !!j)
+    .filter(j => j.tier > currentTier)
+    .filter(j => Object.entries(j.requirements).every(([stat, min]) => {
+      const current = (player.stats as unknown as Record<string, number>)[stat] ?? 0
+      return current >= (min as number)
+    }))
+
+  if (qualifying.length === 0) return undefined
+  // Velja best launaða starfið sem AI á kost á (mest framför).
+  return qualifying.reduce((best, j) => (j.weeklySalary > best.weeklySalary ? j : best), qualifying[0]).id
+}
+
+function pickAffordableDish(player: PlayerState, locationId: string): MenuItem | undefined {
+  // Keep one week's rent in reserve when buying meals too.
+  const rentBuffer = getWeeklyRent(player.housingTier)
+  const affordable = getMenuItemsByLocation(locationId).filter(d => player.money - d.price >= rentBuffer)
+  if (affordable.length === 0) return undefined
+  // Velja dýrasta réttinn sem AI hefur efni á (mest áhrif).
+  return affordable.reduce((best, d) => (d.price > best.price ? d : best), affordable[0])
 }
 
 function buildActionParams(player: PlayerState, actionType: ActionType, _state?: GameState): Record<string, unknown> {
@@ -105,6 +186,14 @@ function scoreAction(
     case 'apply_job':
       if (!player.job) score += 25
       else if (player.stats.career > 40) score += 5
+      break
+
+    case 'buy_meal':
+      // Borða þegar líðan er lág eða streita há, en ekki ef peningar eru af skornum skammti.
+      if (player.money > 2000) {
+        score += player.stats.wellbeing < 40 ? 8 : 2
+        score += urgency.stress > 50 ? 4 : 0
+      }
       break
 
     default:

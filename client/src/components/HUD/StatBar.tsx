@@ -1,5 +1,6 @@
-import { STAT_ICONS, STAT_LABELS } from '@jones/shared'
+import { STAT_ICONS } from '@jones/shared'
 import type { StatKey } from '@jones/shared'
+import { useT } from '../../i18n'
 
 const STAT_COLORS: Record<StatKey, string> = {
   wealth:     '#F59E0B',
@@ -17,8 +18,10 @@ interface StatBarProps {
 }
 
 export function StatBar({ stat, value, compact = false }: StatBarProps) {
+  const t = useT()
   const color = STAT_COLORS[stat]
   const pct = Math.max(0, Math.min(100, value))
+  const label = t.stats[stat]
 
   if (compact) {
     return (
@@ -40,7 +43,7 @@ export function StatBar({ stat, value, compact = false }: StatBarProps) {
       <div className="flex justify-between items-center">
         <span className="text-xs text-slate-400 flex items-center gap-1">
           <span>{STAT_ICONS[stat]}</span>
-          <span>{STAT_LABELS[stat]}</span>
+          <span>{label}</span>
         </span>
         <span className="text-xs font-mono" style={{ color }}>{value}</span>
       </div>

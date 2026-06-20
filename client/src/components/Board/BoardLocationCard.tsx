@@ -1,73 +1,113 @@
-import type { BoardLocation, PlayerState } from '@jones/shared'
-import type { LocationType } from '@jones/shared'
+import type { BoardLocation } from '@jones/shared'
+import { useT } from '../../i18n'
+import { BuildingArt } from './BuildingArt'
 
-const TYPE_COLORS: Record<LocationType, { border: string; bg: string; text: string }> = {
-  employment:  { border: '#7C3AED', bg: 'rgba(124,58,237,0.1)',  text: '#A78BFA' },
-  workplace:   { border: '#2563EB', bg: 'rgba(37,99,235,0.1)',   text: '#60A5FA' },
-  education:   { border: '#D97706', bg: 'rgba(217,119,6,0.1)',   text: '#FBBF24' },
-  housing:     { border: '#059669', bg: 'rgba(5,150,105,0.1)',   text: '#34D399' },
-  shop:        { border: '#EA580C', bg: 'rgba(234,88,12,0.1)',   text: '#FB923C' },
-  social:      { border: '#DB2777', bg: 'rgba(219,39,119,0.1)',  text: '#F472B6' },
-  gym:         { border: '#DC2626', bg: 'rgba(220,38,38,0.1)',   text: '#F87171' },
-  park:        { border: '#16A34A', bg: 'rgba(22,163,74,0.1)',   text: '#4ADE80' },
-  event_square:{ border: '#6B7280', bg: 'rgba(107,114,128,0.1)', text: '#9CA3AF' },
-}
+// Uniform frame color for every tile
+const FRAME = { border: '#475569', glow: '#64748B' }
 
 interface BoardLocationCardProps {
   location: BoardLocation
-  players: PlayerState[]
   isSelected: boolean
   isCurrentLocation: boolean
   onClick: () => void
+  onActionClick: (e: React.MouseEvent) => void
 }
 
 export function BoardLocationCard({
-  location, players, isSelected, isCurrentLocation, onClick,
+  location, isSelected, isCurrentLocation, onClick, onActionClick,
 }: BoardLocationCardProps) {
-  const colors = TYPE_COLORS[location.type]
+  const t = useT()
+  const colors = FRAME
+  const name = t.locations[location.id] ?? location.name
+
+  const borderColor = isSelected ? '#60A5FA' : isCurrentLocation ? colors.glow : colors.border
+  const glowShadow = isCurrentLocation
+    ? `0 0 18px ${colors.glow}80, 0 0 5px ${colors.glow}40`
+    : isSelected
+    ? '0 0 12px rgba(96,165,250,0.6)'
+    : '0 2px 6px rgba(0,0,0,0.5)'
 
   return (
-    <button
-      onClick={onClick}
-      className="relative w-full h-full rounded-lg border transition-all duration-200 cursor-pointer text-left overflow-hidden"
+    <div
+      className="relative rounded-lg border-2 overflow-visible cursor-pointer transition-all duration-200 select-none"
       style={{
-        borderColor: isSelected ? '#60A5FA' : colors.border,
-        background: isSelected ? 'rgba(96,165,250,0.15)' : colors.bg,
-        boxShadow: isCurrentLocation ? `0 0 12px ${colors.border}88` : undefined,
+        width: '100%',
+        aspectRatio: '96 / 60',
+        borderColor,
+        boxShadow: glowShadow,
+        background: 'rgba(8,13,26,0.6)',
+        transform: isSelected ? 'scale(1.08)' : isCurrentLocation ? 'scale(1.04)' : 'scale(1)',
+        zIndex: isSelected || isCurrentLocation ? 10 : 1,
       }}
+      onClick={onClick}
     >
-      {/* Icon + name */}
-      <div className="flex flex-col items-center justify-center h-full p-1 gap-0.5">
-        <span className="text-lg leading-none">{location.icon}</span>
-        <span
-          className="text-center leading-tight font-medium"
-          style={{ color: colors.text, fontSize: '0.6rem' }}
-        >
-          {location.name}
-        </span>
+      {/* Building illustration — 80% top-left of tile */}
+      <div
+        className="absolute overflow-hidden rounded-tl-md pointer-events-none"
+        style={{ top: 0, left: 0, width: '80%', height: '80%' }}
+      >
+        <BuildingArt locationId={location.id} />
       </div>
 
-      {/* Player tokens */}
-      {players.length > 0 && (
-        <div className="absolute bottom-0.5 left-0 right-0 flex justify-center gap-0.5">
-          {players.slice(0, 4).map(p => (
-            <div
-              key={p.id}
-              className="w-2.5 h-2.5 rounded-full border border-slate-900 animate-glow"
-              style={{ background: p.color, color: p.color }}
-              title={p.name}
-            />
-          ))}
-        </div>
-      )}
+      {/* Type icon badge — overlaid on the bottom-left corner of the frame (~30% larger than action icon) */}
+      <div
+        className="absolute rounded flex items-center justify-center"
+        style={{
+          bottom: -7, left: -11,
+          width: 34, height: 34,
+          background: 'rgba(8,13,26,0.85)',
+          border: `1px solid ${colors.border}90`,
+          fontSize: 21,
+          lineHeight: 1,
+          boxShadow: '0 1px 2px rgba(0,0,0,0.5)',
+          zIndex: 5,
+        }}
+      >
+        {location.icon}
+      </div>
 
-      {/* Current player ring */}
+      {/* Action button ⚡ — overlaid on the top-right corner of the frame */}
+      <button
+        onClick={onActionClick}
+        className="absolute rounded flex items-center justify-center transition-all duration-150 cursor-pointer hover:scale-110"
+        style={{
+          top: -7, right: -7,
+          width: 26, height: 26,
+          zIndex: 5,
+          background: `${colors.glow}E6`,
+          border: `1px solid ${colors.glow}`,
+          fontSize: 16,
+          color: 'white',
+          fontWeight: 'bold',
+          boxShadow: `0 0 6px ${colors.glow}90`,
+        }}
+        title={name}
+      >
+        ⚡
+      </button>
+
+      {/* Name strip — bottom of card */}
+      <div
+        className="absolute left-0 right-0 bottom-0 px-0.5 text-center font-semibold leading-tight rounded-b-md"
+        style={{
+          fontSize: '0.85rem',
+          padding: '3px 3px',
+          color: isSelected ? '#60A5FA' : isCurrentLocation ? colors.glow : '#CBD5E1',
+          background: 'rgba(8,13,26,0.94)',
+          borderTop: `1px solid ${colors.border}60`,
+          textShadow: '0 1px 2px rgba(0,0,0,0.7)',
+        }}
+      >
+        {name}
+      </div>
+
+      {/* Current location pulse ring */}
       {isCurrentLocation && (
         <div
-          className="absolute inset-0 rounded-lg border-2 pointer-events-none"
-          style={{ borderColor: '#60A5FA' }}
+          className="absolute inset-0 rounded-md pointer-events-none animate-loc-pulse"
+          style={{ border: `2px solid ${colors.glow}`, opacity: 0.5 }}
         />
       )}
-    </button>
+    </div>
   )
 }

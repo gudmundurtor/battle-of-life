@@ -32,6 +32,22 @@ export const JOB_DEFINITIONS: JobDefinition[] = [
     icon: '🍽️',
   },
   {
+    id: 'fast_food',
+    title: 'Skyndibitastarfsmaður',
+    sector: 'service',
+    tier: 1,
+    weeklySalary: 750,
+    timeCostPerWeek: 6,
+    stressGainPerWeek: 8,
+    requirements: {},
+    weeklyEffects: [
+      { stat: 'career', value: 1 },
+      { stat: 'network', value: 1 },
+    ],
+    description: 'Afgreiðsla og eldun á skyndibitastað',
+    icon: '🍔',
+  },
+  {
     id: 'manual_labor',
     title: 'Handavinna',
     sector: 'trades',
@@ -147,6 +163,22 @@ export const JOB_DEFINITIONS: JobDefinition[] = [
     ],
     description: 'Hönnun og skapandi vinna',
     icon: '🎨',
+  },
+  {
+    id: 'chef',
+    title: 'Kokkur',
+    sector: 'service',
+    tier: 3,
+    weeklySalary: 2400,
+    timeCostPerWeek: 7,
+    stressGainPerWeek: 11,
+    requirements: { knowledge: 30, reputation: 15 },
+    weeklyEffects: [
+      { stat: 'career', value: 2 },
+      { stat: 'reputation', value: 2 },
+    ],
+    description: 'Yfirmatreiðslumaður á fínum veitingastað',
+    icon: '👨‍🍳',
   },
 
   // --- TIER 4 ---

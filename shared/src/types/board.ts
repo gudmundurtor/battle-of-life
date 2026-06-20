@@ -20,6 +20,7 @@ export type ActionType =
   | 'exercise'
   | 'shop_clothes'
   | 'shop_food'
+  | 'buy_meal'
   | 'upgrade_housing'
   | 'form_group'
   | 'join_group'

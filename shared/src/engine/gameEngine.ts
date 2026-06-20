@@ -7,6 +7,9 @@ import { HOBBY_DEFINITIONS } from '../data/hobbies.js'
 import { EVENT_DEFINITIONS } from '../data/events.js'
 import { GOAL_DEFINITIONS } from '../data/goals.js'
 import { BOARD_LOCATIONS, STARTING_LOCATION_ID, getLocationById } from '../data/board.js'
+import { getMenuItemById } from '../data/menus.js'
+import { getUpgradeTargetTier, getWeeklyRent, getDowngradeTier } from '../data/housing.js'
+import { getHousing } from '../data/housing.js'
 import {
   applyStatEffects,
   applyWeeklyDecay,
@@ -65,6 +68,7 @@ function createPlayer(id: string, name: string, isAI: boolean): PlayerState {
     money: 5000,
     age: 22,
     locationId: STARTING_LOCATION_ID,
+    housingTier: 'budget',
     job: null,
     education: null,
     hobbies: [],
@@ -149,16 +153,31 @@ export function performAction(
   const result = resolveAction(player, action, state)
   const { stats, hidden, money } = applyStatEffects(player, result.effects)
 
+  // Moving to a better apartment changes the player's housing tier (and future rent).
+  const upgradeTarget =
+    action.type === 'upgrade_housing' && result.success
+      ? getUpgradeTargetTier(action.locationId)
+      : null
+
+  // Applying for a specific job (jobId passed in params) actually hires the
+  // player when it succeeds — this is how the AI lands a job too.
+  const hiredJobId =
+    action.type === 'apply_job' && result.success
+      ? (action.params?.jobId as string | undefined)
+      : undefined
+
   const updatedPlayer: PlayerState = {
     ...player,
     stats,
     hidden,
     money: Math.max(0, money + result.moneyDelta - moneyCost),
     locationId: action.locationId,
+    housingTier: upgradeTarget ?? player.housingTier,
+    job: hiredJobId ? { definitionId: hiredJobId, weeksWorked: 0, promotionProgress: 0 } : player.job,
     timeUnitsLeft: player.timeUnitsLeft - locationAction.timeCost,
     actionLog: [
       ...player.actionLog,
-      { week: state.week, actionType: action.type, description: result.messages[0] ?? '' },
+      { week: state.week, actionType: action.type, description: result.messages[0] ?? '', locationId: action.locationId },
     ],
   }
 
@@ -247,6 +266,9 @@ function resolveAction(player: PlayerState, action: PlayerAction, _state: GameSt
         messages: ['Keypti mat'],
       }
 
+    case 'buy_meal':
+      return resolveBuyMeal(player, action.params)
+
     case 'apply_job':
       return resolveApplyJob(player, action.params)
 
@@ -316,6 +338,23 @@ function resolvePracticeHobby(_player: PlayerState, params?: Record<string, unkn
   }
 }
 
+function resolveBuyMeal(player: PlayerState, params?: Record<string, unknown>): ActionResult {
+  const dishId = params?.dishId as string
+  const dish = dishId ? getMenuItemById(dishId) : null
+  if (!dish) {
+    return { success: false, effects: [], moneyDelta: 0, messages: ['Rétturinn finnst ekki'] }
+  }
+  if (player.money < dish.price) {
+    return { success: false, effects: [], moneyDelta: 0, messages: ['Ekki nægir peningar'] }
+  }
+  return {
+    success: true,
+    effects: dish.effects,
+    moneyDelta: -dish.price,
+    messages: [`Keypti ${dish.name}`],
+  }
+}
+
 function resolveApplyJob(player: PlayerState, params?: Record<string, unknown>): ActionResult {
   const jobId = params?.jobId as string
   const jobDef = jobId ? getJobById(jobId) : null
@@ -366,6 +405,10 @@ export function endTurn(state: GameState, playerId: string): GameState {
   player = applyHobbyWeeklyEffects(player, HOBBY_DEFINITIONS)
   player = applyWeeklyDecay(player)
 
+  // Borga vikulega leigu fyrir núverandi húsnæði
+  const rent = applyRent(player, state.week, state.year)
+  player = rent.player
+
   // Athuga markmið
   const jobDef = player.job ? getJobById(player.job.definitionId) : null
   const newlyCompleted = checkGoals(player, GOAL_DEFINITIONS, jobDef)
@@ -415,8 +458,54 @@ export function endTurn(state: GameState, playerId: string): GameState {
     week: newWeek,
     year: newYear,
     pendingEvents: [...state.pendingEvents, ...newPendingEvents],
+    log: [...state.log, rent.logEntry],
     phase: winnerId ? 'finished' : newPendingEvents.length > 0 ? 'event_resolution' : 'playing',
     winnerId,
+  }
+}
+
+/**
+ * Charge the player's weekly rent for their current housing tier.
+ * If they can't afford it, they pay what they have, take a stress/wellbeing
+ * hit, and are downgraded to a cheaper apartment when possible.
+ */
+function applyRent(
+  player: PlayerState,
+  week: number,
+  year: number,
+): { player: PlayerState; logEntry: GameLogEntry } {
+  const tier = player.housingTier
+  const rentDue = getWeeklyRent(tier)
+  const housingName = getHousing(tier).name
+  const base = { week, year, playerId: player.id, isEvent: false }
+
+  if (player.money >= rentDue) {
+    return {
+      player: { ...player, money: player.money - rentDue },
+      logEntry: { ...base, message: `Borgaði ${rentDue.toLocaleString()} kr í leigu (${housingName})` },
+    }
+  }
+
+  // Cannot afford rent — penalty and possible eviction to a cheaper tier.
+  const downgrade = getDowngradeTier(tier)
+  const penalized = applyStatEffects(player, [
+    { stat: 'stress', value: 12 },
+    { stat: 'wellbeing', value: -8 },
+  ])
+  return {
+    player: {
+      ...player,
+      money: 0,
+      housingTier: downgrade ?? tier,
+      stats: penalized.stats,
+      hidden: penalized.hidden,
+    },
+    logEntry: {
+      ...base,
+      message: downgrade
+        ? `Réð ekki við leiguna — flutti í ${getHousing(downgrade).name}`
+        : `Réð ekki við leiguna! (${housingName})`,
+    },
   }
 }
 

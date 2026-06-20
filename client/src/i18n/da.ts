@@ -1,0 +1,413 @@
+import type { Translations } from './types'
+
+export const da: Translations = {
+  lobby: {
+    tagline: 'Livet i overhalingsbanen',
+    players: 'Spillere',
+    playerName: (n) => `Spiller ${n}`,
+    addPlayer: '+ Tilføj spiller',
+    gameLength: 'Spilvarighed',
+    short: 'Kort',
+    long: 'Lang',
+    jonesDifficulty: 'Jones sværhedsgrad',
+    easy: 'Let',
+    mediumDiff: 'Middel',
+    hard: 'Svær',
+    goalCountLabel: 'Antal mål',
+    goalsN: (n) => `${n} mål`,
+    jonesCompetes: 'Jones konkurrerer mod dig',
+    jonesCompetesDesc: 'AI-rival fra originalspillet',
+    startGame: 'Start spil →',
+    language: 'Sprog',
+  },
+
+  goalSelection: {
+    playerOf: (n, total) => `Spiller ${n} af ${total}`,
+    chooseGoals: 'Vælg dine mål',
+    selectGoalsDesc: (n) => `Vælg ${n} mål — du skal opnå dem alle for at vinde`,
+    selectMore: (n) => `Vælg ${n} mere`,
+    confirmNext: 'Bekræft og næste spiller →',
+    startGame: 'Start spillet! →',
+  },
+
+  game: {
+    week: 'Uge',
+    year: 'År',
+    myTurn: '⚡ Din tur',
+    waitingFor: (name) => `⏳ Tur: ${name}`,
+    aiThinking: 'Jones tænker…',
+    handoffTitle: 'Næste spiller',
+    handoffReady: 'Jeg er klar →',
+    endTurn: 'Afslut uge ↵',
+    teLeft: (n) => `${n} TE tilbage`,
+    teUnit: 'TE',
+    waitingForTurn: 'Venter på din tur…',
+    hobbies: 'Hobbyer',
+    noTime: 'Ikke nok tid',
+    noMoney: 'Ikke nok penge',
+    notEmployedHere: 'Ikke ansat her',
+    applyJobSubtitle: 'Åbner jobliste',
+    hobbyXpSubtitle: '+trivsel, +XP',
+    startVerb: 'Start',
+    practiceVerb: 'Øv',
+    jobNoReqs: (title) => `Opfylder ikke kravene til ${title}`,
+    jobHired: (title) => `🎉 Fik job som ${title}!`,
+    hobbyXpMsg: (icon, name, xp) => `${icon} ${name} +${xp} XP`,
+    work: 'Arbejd',
+    study: 'Studer',
+    rest: 'Hvil',
+    shop_food: 'Køb mad',
+    shop_clothes: 'Køb tøj',
+    buy_meal: 'Køb et måltid',
+    socialize: 'Mød venner',
+    exercise: 'Træn',
+    apply_job: 'Søg job',
+    practice_hobby: 'Øv hobby',
+    form_group: 'Dan en gruppe',
+    join_group: 'Tilslut dig gruppe',
+    group_session: 'Gruppesession',
+    upgrade_housing: 'Flyt til bedre bolig',
+    quit: 'Afslut',
+    quitConfirmTitle: 'Afslut spillet?',
+    quitConfirmBody: 'Det nuværende spil går tabt, og du vender tilbage til startskærmen.',
+    quitConfirm: 'Afslut',
+    quitCancel: 'Bliv ved',
+    standings: 'Stilling',
+  },
+
+  standings: {
+    title: 'Stilling',
+    you: 'Dig',
+    leader: 'Fører',
+    score: 'Score',
+    points: 'point',
+    close: 'Luk',
+  },
+
+  rules: {
+    button: 'Regler',
+    title: 'Spilleregler',
+    intro: 'Byg et godt liv og saml flest point. Point får du ved at fuldføre dine mål.',
+    close: 'Luk',
+    sections: [
+      {
+        heading: '🎯 Spillets mål',
+        body: [
+          'Du styrer en ung voksen (starter som 22-årig med 5.000 kr.).',
+          'Den med flest point, når spillet slutter, vinder.',
+        ],
+      },
+      {
+        heading: '📅 Uger og tid',
+        body: [
+          'Hver tur er én uge. Du har 10 tidsenheder pr. uge.',
+          'Når tiden er brugt (eller du afslutter ugen), får du 10 nye næste uge.',
+          'Spillet varer 5, 10 eller 20 år (52 uger pr. år).',
+        ],
+      },
+      {
+        heading: '🏆 Mål og point',
+        body: [
+          'I starten vælger du mål (3 som standard).',
+          'Hvert mål giver point efter sværhedsgrad (10–35 point).',
+          'Slutscore = summen af point for fuldførte mål.',
+        ],
+      },
+      {
+        heading: '📊 Egenskaber',
+        body: [
+          '💰 Rigdom · 🎓 Viden · 💼 Karriere · ❤️ Trivsel · 🤝 Netværk · ⭐ Omdømme.',
+          'Handlinger ændrer disse værdier, og mål kræver bestemte minimumsværdier.',
+        ],
+      },
+      {
+        heading: '🏠 Handlinger',
+        body: [
+          'Klik på en bygning og vælg en handling: arbejde, studere, dyrke en hobby, socialisere, hvile, motionere, shoppe, opgradere bolig m.m.',
+          'Du kan kun arbejde, hvor du er ansat — søg et job først.',
+          'De fleste handlinger koster tid, nogle også penge.',
+        ],
+      },
+      {
+        heading: '🎲 Begivenheder',
+        body: [
+          'Tilfældige begivenheder opstår af og til og påvirker dine egenskaber eller penge.',
+          'I singleplayer konkurrerer Jones (AI) mod dig.',
+        ],
+      },
+    ],
+  },
+
+  news: {
+    title: 'Byavisen',
+    edition: (week, year) => `Uge ${week} · År ${year}`,
+    close: 'Luk',
+    headlines: [
+      'Byrådet annoncerer nye offentlige parker.',
+      'Vejrudsigt: sol hele ugen.',
+      'En ny café åbner i centrum.',
+      'Arbejdsgivere søger dygtige medarbejdere.',
+      'Boligpriserne stiger fortsat i byen.',
+      'Universitetet tilbyder nye kurser til efteråret.',
+      'Weekendens musikfestival trækker store skarer.',
+      'Fitnesscenteret afslører helt nyt udstyr.',
+      'Eksperter siger, at inflationen aftager.',
+      'Frivillige rydder op på stranden.',
+      'En lokal startup sikrer ny finansiering.',
+      'Borgere opfordres til at spare på energien.',
+    ],
+  },
+
+  gameOver: {
+    wonTitle: (name) => `${name} vinder!`,
+    scoreAndYear: (score, year) => `${score} point · År ${year}`,
+    playAgain: 'Spil igen',
+    points: 'p',
+    money: 'kr.',
+    ai: 'AI',
+  },
+
+  hud: {
+    money: 'Penge',
+    stress: 'Stress',
+    luck: 'Held',
+    noJob: 'Ingen arbejde',
+    timeUnits: 'Tidsenheder',
+    goals: (done, total) => `${done}/${total} mål`,
+    yourTurn: 'Din tur',
+    rent: 'Husleje',
+    perWeek: 'kr/uge',
+  },
+
+  housing: {
+    budget: 'Billig lejlighed',
+    mid: 'Mellemklasse lejlighed',
+    luxury: 'Luksuslejlighed',
+  },
+
+  aiRecap: {
+    title: (name: string) => `Hvad lavede ${name}?`,
+    subtitle: (week: number) => `Uge ${week}`,
+    atLocation: (action: string, location: string) => `${action} — ${location}`,
+    nothing: 'Gjorde ingenting i denne uge.',
+    close: 'Luk',
+  },
+
+  jobPicker: {
+    title: 'Ledige stillinger',
+    tier: 'Niveau',
+    currentJob: '✓ Nuværende job',
+    cancel: 'Annuller',
+    perWeek: 'kr/uge',
+    workplace: 'Arbejdsplads',
+  },
+
+  mealPicker: {
+    title: 'Menukort',
+    cancel: 'Annuller',
+  },
+
+  dishes: {
+    mcd_burger: { name: 'Burger', description: 'En klassisk hamburger' },
+    mcd_fries: { name: 'Pommes frites', description: 'Sprøde pommes frites' },
+    mcd_combo: { name: 'BigMac-menu', description: 'Burger, pommes frites og en drink' },
+    mcd_shake: { name: 'Milkshake', description: 'En kold og sød shake' },
+    res_pasta: { name: 'Pasta', description: 'Hjemmelavet pasta efter dagens ret' },
+    res_sushi: { name: 'Sushi', description: 'Et frisk sushi-udvalg' },
+    res_steak: { name: 'Bøf', description: 'Mør bøf med tilbehør' },
+    res_course: { name: 'Tre-retters menu', description: 'Forret, hovedret og dessert' },
+  },
+
+  eventDialog: {
+    requires: 'Kræver',
+  },
+
+  stats: {
+    wealth: 'Velstand',
+    knowledge: 'Viden',
+    career: 'Karriere',
+    wellbeing: 'Trivsel',
+    network: 'Netværk',
+    reputation: 'Omdømme',
+    stress: 'Stress',
+    luck: 'Held',
+  },
+
+  hobbyLevels: {
+    beginner: 'begynder',
+    skilled: 'dygtig',
+    talented: 'talentfuld',
+    professional: 'professionel',
+  },
+
+  goals: {
+    millionaire: {
+      name: 'Millionær',
+      description: 'Spar 100.000 kr. op og nå høj velstand',
+      hint: 'Få et godt betalt job og invester klogt',
+    },
+    expert: {
+      name: 'Ekspert',
+      description: 'Nå høj viden og en udviklet karriere',
+      hint: 'Studér og arbejd i relaterede områder',
+    },
+    wellbeing: {
+      name: 'Lykke',
+      description: 'Lev godt med lav stress',
+      hint: 'Undgå overarbejde — nyd hobbyer og hvil dig',
+    },
+    celebrity: {
+      name: 'Berømthed',
+      description: 'Bliv en kendt person i byen',
+      hint: 'Hobbyer, karriere og gode forbindelser hjælper',
+    },
+    connector: {
+      name: 'Netværker',
+      description: 'Opbyg et bredt netværk',
+      hint: 'Socialt liv og gruppeaktiviteter',
+    },
+    artist: {
+      name: 'Kunstner',
+      description: 'Nå professionelt niveau i en hobby',
+      hint: 'Øv regelmæssigt over lang tid',
+    },
+    executive: {
+      name: 'Direktør',
+      description: 'Nå det højeste karriereniveau',
+      hint: 'Uddannelse og erfaring er nøglen',
+    },
+    balanced: {
+      name: 'Balance',
+      description: 'Nå minimumsværdi i alle kernestatistikker',
+      hint: 'Alt på én gang — svært men muligt',
+    },
+    entrepreneur_goal: {
+      name: 'Iværksætter',
+      description: 'Start en virksomhed og lykkes',
+      hint: 'Kræver stærkt netværk og god karriere',
+    },
+    zen: {
+      name: 'Indre ro',
+      description: 'Nå maksimal trivsel',
+      hint: 'Hvile, hobbyer og minimal stress',
+    },
+  },
+
+  events: {
+    car_breakdown: {
+      title: 'Bilen bryder ned',
+      description: 'Din bil bryder ned på vej til arbejde. En dyr reparation venter.',
+      choices: {
+        repair: { label: 'Få den repareret', description: 'Betal for reparationen' },
+        cheap_repair: { label: 'Billig reparation', description: 'En reparation der ikke holder længe' },
+        sell_car: { label: 'Sælg bilen', description: 'Sælg den og brug offentlig transport' },
+      },
+    },
+    unexpected_bill: {
+      title: 'Uventet regning',
+      description: 'Uventede udgifter opstår — tandlæge, husholdning eller andet.',
+      choices: {
+        pay: { label: 'Betal', description: 'Tag hånd om det nu' },
+        delay: { label: 'Udsæt betaling', description: 'Udsæt — vil koste mere senere' },
+      },
+    },
+    job_offer: {
+      title: 'Jobtilbud',
+      description: 'En i dit netværk kontakter dig med et jobtilbud.',
+      choices: {
+        accept: { label: 'Accepter tilbuddet', description: 'Skift job' },
+        decline: { label: 'Afvis', description: 'Bliv hvor du er' },
+      },
+    },
+    illness: {
+      title: 'Sygdom',
+      description: 'Du bliver syg og kan ikke arbejde i flere uger.',
+      choices: {
+        rest: { label: 'Hvil ordentligt', description: 'Tag tid til at komme dig' },
+        push_through: { label: 'Kæmp dig igennem', description: 'Forsøg at fortsætte' },
+      },
+    },
+    windfall: {
+      title: 'Uventet arv',
+      description: 'En fjern slægtning efterlader dig en arv.',
+      choices: {
+        invest: { label: 'Invester', description: 'Brug pengene til at investere' },
+        spend: { label: 'Brug i hverdagen', description: 'Forbedre livskvaliteten' },
+      },
+    },
+    promotion_chance: {
+      title: 'Forfremmelsesmulighed',
+      description: 'Din chef giver dig en chance for at bevise dig selv.',
+      choices: {
+        accept_challenge: { label: 'Tag udfordringen op', description: 'Tag ekstra arbejde på dig' },
+        decline_challenge: { label: 'Afvis', description: 'Oprethold balance' },
+      },
+    },
+    burnout: {
+      title: 'Udmattelse og udbrændthed',
+      description: 'Stress har hobet sig op. Du lider af udbrændthed.',
+      choices: {
+        take_leave: { label: 'Tag sygeorlov', description: 'Hold fri for at komme dig' },
+        push_harder: { label: 'Prøv hårdere', description: 'Kæmp mod udmattelsen' },
+      },
+    },
+    networking_event: {
+      title: 'Netværksarrangement',
+      description: 'Du er inviteret til et branchenetværksarrangement.',
+      choices: {
+        attend: { label: 'Deltag', description: 'Gå og præsentér dig selv' },
+        skip: { label: 'Spring over', description: 'Bliv hjemme' },
+      },
+    },
+  },
+
+  hobbies: {
+    music: { name: 'Musik', description: 'Lær et instrument og komponer musik' },
+    programming: { name: 'Programmering', description: 'Lær at kode og byg egne projekter' },
+    art: { name: 'Kunst', description: 'Maleri, tegning og anden billedkunst' },
+    fitness: { name: 'Fitness', description: 'Fysisk træning og sundhed' },
+    writing: { name: 'Skrivning', description: 'Skriv historier, artikler eller en blog' },
+    cooking: { name: 'Madlavning', description: 'Kog mad og udvikl opskrifter' },
+  },
+
+  jobs: {
+    cashier: { title: 'Kasserer', description: 'Arbejd i en butik' },
+    waiter: { title: 'Tjener', description: 'Server på en restaurant' },
+    fast_food: { title: 'Fastfood-medarbejder', description: 'Kasse og køkken på et fastfoodsted' },
+    chef: { title: 'Kok', description: 'Køkkenchef på en fin restaurant' },
+    manual_labor: { title: 'Manuelt arbejde', description: 'Hårdt fysisk arbejde' },
+    office_worker: { title: 'Kontormedarbejder', description: 'Generelt kontorarbejde' },
+    nurse: { title: 'Sygeplejerske', description: 'Plej patienter på hospitalet' },
+    teacher: { title: 'Lærer', description: 'Undervis elever' },
+    programmer: { title: 'Programmør', description: 'Byg software' },
+    accountant: { title: 'Revisor', description: 'Håndter virksomhedens økonomi' },
+    designer: { title: 'Designer', description: 'Design og kreativt arbejde' },
+    senior_developer: { title: 'Senior Udvikler', description: 'Led et udviklingshold' },
+    doctor: { title: 'Læge', description: 'Behandl patienter' },
+    manager: { title: 'Leder', description: 'Styr en afdeling eller virksomhed' },
+    cto: { title: 'Teknologidirektør (CTO)', description: 'Øverste teknologiansvarlige' },
+    entrepreneur: { title: 'Iværksætter', description: 'Driv din egen virksomhed — høj risiko, stor gevinst' },
+  },
+
+  locations: {
+    employment_office: 'Jobcenter',
+    tech_company: 'Teknologivirksomhed',
+    hospital: 'Hospital',
+    office_building: 'McDonalds',
+    retail_store: 'Butik',
+    school: 'Restaurant',
+    university: 'Universitet',
+    library: 'Bibliotek',
+    online_courses: 'Online kurser',
+    apartment_budget: 'Billig lejlighed',
+    apartment_mid: 'Mellemklasselejlighed',
+    apartment_luxury: 'Luksuslejlighed',
+    market: 'Marked',
+    clothing_store: 'Tøjbutik',
+    social_club: 'Kulturhus',
+    park: 'Parken',
+    gym: 'Fitnesscenter',
+    music_studio: 'Musikstudie',
+    art_studio: 'Kunststudie',
+  },
+}

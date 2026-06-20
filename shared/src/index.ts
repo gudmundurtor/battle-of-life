@@ -7,6 +7,8 @@ export type { GroupActivity, GroupActivityDefinition, GroupActivityType, GroupDe
 export type { GameEventDefinition, EventChoice, EventTrigger, ActiveEvent } from './types/events.js'
 export type { GoalDefinition, GoalCondition } from './types/goals.js'
 export type { BoardLocation, LocationType, ActionType, LocationAction } from './types/board.js'
+export type { MenuItem } from './types/menu.js'
+export type { HousingTier, HousingDef } from './data/housing.js'
 export type { GameState, GameConfig, GamePhase, GameLength, AIDifficulty, PlayerAction, ActionResult, GameLogEntry } from './types/game.js'
 
 // Constants
@@ -20,10 +22,12 @@ export { HOBBY_DEFINITIONS, getHobbyById } from './data/hobbies.js'
 export { EVENT_DEFINITIONS, getEventById } from './data/events.js'
 export { GOAL_DEFINITIONS, getGoalById } from './data/goals.js'
 export { BOARD_LOCATIONS, getLocationById, STARTING_LOCATION_ID } from './data/board.js'
+export { MENU_ITEMS, getMenuItemById, getMenuItemsByLocation } from './data/menus.js'
+export { HOUSING, HOUSING_TIER_BY_LOCATION, getHousing, getHousingLocationId, getWeeklyRent, getUpgradeTargetTier, getDowngradeTier } from './data/housing.js'
 
 // Engine
 export { createGame, assignGoals, startGame, performAction, endTurn } from './engine/gameEngine.js'
 export { applyStatEffects, applyWeeklyDecay, computeWealthLevel, getLuckModifier, getStressCategory } from './engine/statEngine.js'
-export { checkEventTriggers, resolveEventChoice, applyEventResolution } from './engine/eventEngine.js'
+export { checkEventTriggers, resolveEventChoice, applyEventResolution, autoResolveAIEvents } from './engine/eventEngine.js'
 export { checkGoals, checkGoalCondition, computeScore } from './engine/goalEngine.js'
 export { chooseAIAction } from './engine/aiEngine.js'

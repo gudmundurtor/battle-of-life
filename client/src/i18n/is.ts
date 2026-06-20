@@ -1,0 +1,413 @@
+import type { Translations } from './types'
+
+export const is: Translations = {
+  lobby: {
+    tagline: 'Á hraðferð um lífið',
+    players: 'Leikmenn',
+    playerName: (n) => `Leikmaður ${n}`,
+    addPlayer: '+ Bæta við',
+    gameLength: 'Lengd leiks',
+    short: 'Stuttur',
+    long: 'Langur',
+    jonesDifficulty: 'Jones erfiðleikastig',
+    easy: 'Auðveld',
+    mediumDiff: 'Meðal',
+    hard: 'Erfið',
+    goalCountLabel: 'Fjöldi markmiða',
+    goalsN: (n) => `${n} markmið`,
+    jonesCompetes: 'Jones keppist við þig',
+    jonesCompetesDesc: 'AI keppinautur sem þú þekkir úr upprunalega leiknum',
+    startGame: 'Hefja leik →',
+    language: 'Tungumál',
+  },
+
+  goalSelection: {
+    playerOf: (n, total) => `Leikmaður ${n} af ${total}`,
+    chooseGoals: 'Veldu markmið þín',
+    selectGoalsDesc: (n) => `Veldu ${n} markmið — þú þarft að ná þeim öllum til að vinna`,
+    selectMore: (n) => `Veldu enn ${n} markmið`,
+    confirmNext: 'Staðfesta og næsti leikmaður →',
+    startGame: 'Hefja leik! →',
+  },
+
+  game: {
+    week: 'Vika',
+    year: 'Ár',
+    myTurn: '⚡ Röð þín',
+    waitingFor: (name) => `⏳ Röð: ${name}`,
+    aiThinking: 'Jones er að hugsa…',
+    handoffTitle: 'Næsta röð',
+    handoffReady: 'Ég er tilbúinn →',
+    endTurn: 'Ljúka viku ↵',
+    teLeft: (n) => `${n} TE eftir`,
+    teUnit: 'TE',
+    waitingForTurn: 'Bíður eftir röð þinni…',
+    hobbies: 'Hobbyar',
+    noTime: 'Ekki nægur tími',
+    noMoney: 'Ekki nægir peningar',
+    notEmployedHere: 'Þú ert ekki ráðin/n hér',
+    applyJobSubtitle: 'Opnar starfslista',
+    hobbyXpSubtitle: '+líðan, +XP',
+    startVerb: 'Byrja',
+    practiceVerb: 'Æfa',
+    jobNoReqs: (title) => `Uppfyllir ekki kröfur fyrir ${title}`,
+    jobHired: (title) => `🎉 Fékk starf sem ${title}!`,
+    hobbyXpMsg: (icon, name, xp) => `${icon} ${name} +${xp} XP`,
+    work: 'Vinna',
+    study: 'Stunda nám',
+    rest: 'Hvílast',
+    shop_food: 'Kaupa mat',
+    shop_clothes: 'Kaupa föt',
+    buy_meal: 'Kaupa máltíð',
+    socialize: 'Hittast við vini',
+    exercise: 'Þjálfa',
+    apply_job: 'Sækja um starf',
+    practice_hobby: 'Æfa hobby',
+    form_group: 'Stofna hóp',
+    join_group: 'Taka þátt í hópi',
+    group_session: 'Hljómsveitar æfing',
+    upgrade_housing: 'Flytja í betri íbúð',
+    quit: 'Hætta',
+    quitConfirmTitle: 'Hætta í leiknum?',
+    quitConfirmBody: 'Núverandi leikur tapast og þú ferð aftur á upphafsskjáinn.',
+    quitConfirm: 'Hætta',
+    quitCancel: 'Halda áfram',
+    standings: 'Staða',
+  },
+
+  standings: {
+    title: 'Staðan í leiknum',
+    you: 'Þú',
+    leader: 'Efstur',
+    score: 'Stig',
+    points: 'stig',
+    close: 'Loka',
+  },
+
+  rules: {
+    button: 'Reglur',
+    title: 'Leikreglur',
+    intro: 'Byggðu upp gott líf og safnaðu flestum stigum. Stig fást með því að klára markmiðin þín.',
+    close: 'Loka',
+    sections: [
+      {
+        heading: '🎯 Markmið leiksins',
+        body: [
+          'Þú stýrir ungri manneskju (byrjar 22 ára með 5.000 kr.).',
+          'Sá vinnur sem hefur flest stig þegar leiknum lýkur.',
+        ],
+      },
+      {
+        heading: '📅 Vikur og tími',
+        body: [
+          'Hver umferð er ein vika. Þú hefur 10 tímaeiningar á viku.',
+          'Þegar tíminn klárast (eða þú lýkur viku) færðu 10 nýjar næstu viku.',
+          'Leikurinn stendur í 5, 10 eða 20 ár (52 vikur á ári).',
+        ],
+      },
+      {
+        heading: '🏆 Markmið og stig',
+        body: [
+          'Í byrjun velurðu markmið (sjálfgefið 3).',
+          'Hvert markmið gefur stig eftir erfiðleika (10–35 stig).',
+          'Lokastig = summa stiga fyrir kláruð markmið.',
+        ],
+      },
+      {
+        heading: '📊 Eiginleikar',
+        body: [
+          '💰 Auður · 🎓 Þekking · 💼 Ferill · ❤️ Líðan · 🤝 Tengsl · ⭐ Orðspor.',
+          'Aðgerðir breyta þessum gildum og markmið krefjast ákveðinna lágmarka.',
+        ],
+      },
+      {
+        heading: '🏠 Aðgerðir',
+        body: [
+          'Smelltu á byggingu og veldu aðgerð: vinna, nám, æfa hobby, félagslíf, hvíld, líkamsrækt, verslun, uppfæra húsnæði o.fl.',
+          'Þú getur aðeins unnið þar sem þú ert ráðin/n — sæktu fyrst um starf.',
+          'Flestar aðgerðir kosta tíma, sumar líka peninga.',
+        ],
+      },
+      {
+        heading: '🎲 Atburðir',
+        body: [
+          'Af og til kvikna atburðir sem hafa áhrif á eiginleika eða peninga.',
+          'Spilir þú einn keppir Jones (AI) við þig.',
+        ],
+      },
+    ],
+  },
+
+  news: {
+    title: 'Bæjarblaðið',
+    edition: (week, year) => `Vika ${week} · Ár ${year}`,
+    close: 'Loka',
+    headlines: [
+      'Bæjarstjórnin tilkynnir nýja almenningsgarða.',
+      'Veðurspá: sól og blíða alla vikuna.',
+      'Nýtt kaffihús opnar í miðbænum.',
+      'Atvinnurekendur leita að hæfu starfsfólki.',
+      'Húsnæðisverð hækkar enn í bænum.',
+      'Háskólinn býður ný námskeið í haust.',
+      'Tónlistarhátíð um helgina dregur að sér mannfjölda.',
+      'Líkamsræktin kynnir glæný tæki.',
+      'Sérfræðingar segja verðbólgu hægja á sér.',
+      'Sjálfboðaliðar hreinsa ströndina.',
+      'Nýtt sprotafyrirtæki fær fjármögnun.',
+      'Bæjarbúar hvattir til að spara orku.',
+    ],
+  },
+
+  gameOver: {
+    wonTitle: (name) => `${name} vann!`,
+    scoreAndYear: (score, year) => `${score} stig · Ár ${year}`,
+    playAgain: 'Spila aftur',
+    points: 'p',
+    money: 'kr.',
+    ai: 'AI',
+  },
+
+  hud: {
+    money: 'Peningar',
+    stress: 'Streita',
+    luck: 'Heppni',
+    noJob: 'Engin vinna',
+    timeUnits: 'Tímaeiningar',
+    goals: (done, total) => `${done}/${total} markmið`,
+    yourTurn: 'Röð þín',
+    rent: 'Leiga',
+    perWeek: 'kr/viku',
+  },
+
+  housing: {
+    budget: 'Ódýr íbúð',
+    mid: 'Meðal íbúð',
+    luxury: 'Lúxus íbúð',
+  },
+
+  aiRecap: {
+    title: (name: string) => `Hvað gerði ${name}?`,
+    subtitle: (week: number) => `Vika ${week}`,
+    atLocation: (action: string, location: string) => `${action} — ${location}`,
+    nothing: 'Aðhafðist ekkert í þessari viku.',
+    close: 'Loka',
+  },
+
+  jobPicker: {
+    title: 'Laus störf',
+    tier: 'Stig',
+    currentJob: '✓ Núverandi starf',
+    cancel: 'Hætta við',
+    perWeek: 'kr/v',
+    workplace: 'Vinnustaður',
+  },
+
+  mealPicker: {
+    title: 'Matseðill',
+    cancel: 'Hætta við',
+  },
+
+  dishes: {
+    mcd_burger: { name: 'Hamborgari', description: 'Klassískur hamborgari' },
+    mcd_fries: { name: 'Franskar', description: 'Stökkar franskar kartöflur' },
+    mcd_combo: { name: 'BigMac máltíð', description: 'Borgari, franskar og gos' },
+    mcd_shake: { name: 'Mjólkurhristingur', description: 'Kaldur og sætur hristingur' },
+    res_pasta: { name: 'Pasta', description: 'Heimagert pasta dagsins' },
+    res_sushi: { name: 'Sushi', description: 'Ferskt sushi-úrval' },
+    res_steak: { name: 'Nautasteik', description: 'Meyr nautasteik með meðlæti' },
+    res_course: { name: 'Þriggja rétta máltíð', description: 'Forréttur, aðalréttur og eftirréttur' },
+  },
+
+  eventDialog: {
+    requires: 'Þarfnast',
+  },
+
+  stats: {
+    wealth: 'Auður',
+    knowledge: 'Þekking',
+    career: 'Ferill',
+    wellbeing: 'Líðan',
+    network: 'Tengsl',
+    reputation: 'Orðspor',
+    stress: 'Streita',
+    luck: 'Heppni',
+  },
+
+  hobbyLevels: {
+    beginner: 'byrjandi',
+    skilled: 'hæfur',
+    talented: 'hæfileikaríkur',
+    professional: 'faglegur',
+  },
+
+  goals: {
+    millionaire: {
+      name: 'Milljarðamæringur',
+      description: 'Safna 100.000 kr. og ná háum auði',
+      hint: 'Vinna vel launaða vinnu og fjárfesta',
+    },
+    expert: {
+      name: 'Sérfræðingur',
+      description: 'Ná háu þekkingustigi og þróaðum ferli',
+      hint: 'Stunda nám og vinnu í tengdum sviðum',
+    },
+    wellbeing: {
+      name: 'Hamingja',
+      description: 'Lifa góðu lífi með lága streitu',
+      hint: 'Ekki yfirvinnum, stunda hobby og hvíla þig',
+    },
+    celebrity: {
+      name: 'Þekktur einstaklingur',
+      description: 'Verða þekkt manneskja í borginni',
+      hint: 'Hobby, starfsferill og góð tengsl hjálpa',
+    },
+    connector: {
+      name: 'Tengjari',
+      description: 'Búa til víðtækan tengslanet',
+      hint: 'Félagslíf og hópastarfsemi',
+    },
+    artist: {
+      name: 'Listamaður',
+      description: 'Ná faglegu stigi í hobby',
+      hint: 'Æfa hobby reglulega yfir langan tíma',
+    },
+    executive: {
+      name: 'Yfirmaður',
+      description: 'Ná hæsta stigi í starfsferli',
+      hint: 'Námið og reynsla eru lykillinn',
+    },
+    balanced: {
+      name: 'Jafnvægi',
+      description: 'Ná lágmarksgildi í öllum kjarnaþáttum',
+      hint: 'Allt á sama tíma — erfitt en mögulegt',
+    },
+    entrepreneur_goal: {
+      name: 'Frumkvöðull',
+      description: 'Stofna startup og ná árangri',
+      hint: 'Þarf sterkt tengslanet og góðan feril',
+    },
+    zen: {
+      name: 'Innri friður',
+      description: 'Ná hámarki í líðan',
+      hint: 'Hvíld, hobby og lítil streita',
+    },
+  },
+
+  events: {
+    car_breakdown: {
+      title: 'Bíllinn bilar',
+      description: 'Bíllinn þinn bilar á leiðinni í vinnu. Dýr viðgerð bíður.',
+      choices: {
+        repair: { label: 'Láta gera við', description: 'Borga viðgerðina' },
+        cheap_repair: { label: 'Ódýr viðgerð', description: 'Viðgerð sem endist ekki lengi' },
+        sell_car: { label: 'Selja bílinn', description: 'Selja og nota almenningssamgöngur' },
+      },
+    },
+    unexpected_bill: {
+      title: 'Óvænt reikningur',
+      description: 'Óvænt útgjöld koma upp — tannlæknir, heimilistæki eða annað.',
+      choices: {
+        pay: { label: 'Greiða', description: 'Takast á við málið' },
+        delay: { label: 'Fresta greiðslu', description: 'Fresta — mun kosta meira seinna' },
+      },
+    },
+    job_offer: {
+      title: 'Vinnutilboð',
+      description: 'Eitthver af tengslaneti þínu hefur samband með vinnutilboð.',
+      choices: {
+        accept: { label: 'Þiggja tilboðið', description: 'Skipta um vinnu' },
+        decline: { label: 'Hafna', description: 'Vera kyrr þar sem þú ert' },
+      },
+    },
+    illness: {
+      title: 'Veikindi',
+      description: 'Þú veikist og getur ekki unnið í nokkrar vikur.',
+      choices: {
+        rest: { label: 'Hvílast vel', description: 'Taka sér tíma til að ná sér' },
+        push_through: { label: 'Vinna samt', description: 'Þú reynir að halda áfram' },
+      },
+    },
+    windfall: {
+      title: 'Óvænt arfur',
+      description: 'Fjarlægur ættingi lætur þér eftir arf.',
+      choices: {
+        invest: { label: 'Fjárfesta', description: 'Nota peningana til að fjárfesta' },
+        spend: { label: 'Nota í daglegt líf', description: 'Bæta lífsgæði' },
+      },
+    },
+    promotion_chance: {
+      title: 'Tækifæri til kynningar',
+      description: 'Yfirmaðurinn þinn gefur þér tækifæri til að sanna þig.',
+      choices: {
+        accept_challenge: { label: 'Taka upp hannskaann', description: 'Taka viðbótarverkefni' },
+        decline_challenge: { label: 'Hafna', description: 'Viðhalda jafnvægi' },
+      },
+    },
+    burnout: {
+      title: 'Þreyta og útbruni',
+      description: 'Streitan hefur safnast upp. Þú ert að þjást af útbruna.',
+      choices: {
+        take_leave: { label: 'Fara í orlofsleyfi', description: 'Taka frí til að ná sér' },
+        push_harder: { label: 'Þrýsta áfram', description: 'Reynt að berjast gegn þreytu' },
+      },
+    },
+    networking_event: {
+      title: 'Tengslaviðburður',
+      description: 'Þú ert boðaður á networking viðburð í greininni.',
+      choices: {
+        attend: { label: 'Mæta', description: 'Mæta og kynna sig' },
+        skip: { label: 'Sleppa', description: 'Vera heima' },
+      },
+    },
+  },
+
+  hobbies: {
+    music: { name: 'Tónlist', description: 'Læra á hljóðfæri og semja tónlist' },
+    programming: { name: 'Forritun', description: 'Læra forritun og smíða eigin verkefni' },
+    art: { name: 'Myndlist', description: 'Málun, teikning og önnur myndlist' },
+    fitness: { name: 'Líkamsrækt', description: 'Líkamsþjálfun og heilsurækt' },
+    writing: { name: 'Skrif', description: 'Skrifa sögur, greinar eða blogg' },
+    cooking: { name: 'Matreiðsla', description: 'Elda og þróa uppskriftir' },
+  },
+
+  jobs: {
+    cashier: { title: 'Gjaldkeri', description: 'Vinna í búð' },
+    waiter: { title: 'Þjónn', description: 'Þjónusta á veitingastað' },
+    fast_food: { title: 'Skyndibitastarfsmaður', description: 'Afgreiðsla og eldun á skyndibitastað' },
+    chef: { title: 'Kokkur', description: 'Yfirmatreiðslumaður á fínum veitingastað' },
+    manual_labor: { title: 'Handavinna', description: 'Erfiðar líkamlegar vinnur' },
+    office_worker: { title: 'Skrifstofumaður', description: 'Almenn skrifstofuvinna' },
+    nurse: { title: 'Hjúkrunarfræðingur', description: 'Hjúkrun sjúklinga á sjúkrahúsi' },
+    teacher: { title: 'Kennari', description: 'Kennir nemendum' },
+    programmer: { title: 'Forritari', description: 'Smíðar hugbúnað' },
+    accountant: { title: 'Bókhaldari', description: 'Sér um fjárhag fyrirtækja' },
+    designer: { title: 'Hönnuður', description: 'Hönnun og skapandi vinna' },
+    senior_developer: { title: 'Yfirforritari', description: 'Leiðtogi þróunarteymis' },
+    doctor: { title: 'Læknir', description: 'Læknir sjúklinga' },
+    manager: { title: 'Stjórnandi', description: 'Stjórnar deild eða fyrirtæki' },
+    cto: { title: 'Tæknistjóri (CTO)', description: 'Æðsti tæknistjóri' },
+    entrepreneur: { title: 'Frumkvöðull', description: 'Rekur eigið fyrirtæki — há áhætta, stór möguleikar' },
+  },
+
+  locations: {
+    employment_office: 'Vinnumiðlun',
+    tech_company: 'Tæknifyrirtæki',
+    hospital: 'Sjúkrahús',
+    office_building: 'McDonalds',
+    retail_store: 'Verslun',
+    school: 'Veitingastaður',
+    university: 'Háskóli',
+    library: 'Bókasafn',
+    online_courses: 'Netnámskeið',
+    apartment_budget: 'Ódýr íbúð',
+    apartment_mid: 'Meðal íbúð',
+    apartment_luxury: 'Lúxus íbúð',
+    market: 'Markaður',
+    clothing_store: 'Fataverzlun',
+    social_club: 'Félagsmiðstöð',
+    park: 'Garðurinn',
+    gym: 'Líkamsræktarstöð',
+    music_studio: 'Tónlistarstúdíó',
+    art_studio: 'Listamannastúdíó',
+  },
+}

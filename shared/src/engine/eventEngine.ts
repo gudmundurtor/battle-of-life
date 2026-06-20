@@ -119,6 +119,56 @@ export function resolveEventChoice(
   }
 }
 
+/**
+ * Resolves any pending events that target AI players by automatically picking a
+ * sensible choice (the first one the AI can afford / qualify for, otherwise the
+ * first choice). This prevents the game from getting stuck in 'event_resolution'
+ * phase waiting for a human to resolve an event that belongs to the AI.
+ */
+export function autoResolveAIEvents(
+  state: GameState,
+  eventDefs: GameEventDefinition[],
+): GameState {
+  if (state.pendingEvents.length === 0) return state
+
+  const players = { ...state.players }
+  const remaining: typeof state.pendingEvents = []
+
+  for (const pe of state.pendingEvents) {
+    const target = players[pe.targetPlayerId]
+    // Keep events that belong to a human (or unknown) player for manual handling.
+    if (!target?.isAI) { remaining.push(pe); continue }
+
+    const def = eventDefs.find(d => d.id === pe.definitionId)
+    if (!def || def.choices.length === 0) continue // drop unresolvable event
+
+    const choice = def.choices.find(c => {
+      const canAfford = !c.moneyRequired || target.money >= c.moneyRequired
+      const meetsStats = !c.statRequirements || Object.entries(c.statRequirements).every(
+        ([stat, min]) => ((target.stats as unknown as Record<string, number>)[stat] ?? 0) >= (min as number),
+      )
+      return canAfford && meetsStats
+    }) ?? def.choices[0]
+
+    const result = resolveEventChoice(target, def, choice.id, state.week)
+    if (result.success) {
+      players[pe.targetPlayerId] = applyEventResolution(target, result, def.id, state.week)
+    } else {
+      // Even on failure record the cooldown so the AI doesn't re-trigger forever.
+      players[pe.targetPlayerId] = {
+        ...target,
+        eventCooldowns: { ...target.eventCooldowns, [def.id]: state.week },
+      }
+    }
+  }
+
+  const phase = state.phase === 'finished'
+    ? 'finished'
+    : remaining.length > 0 ? 'event_resolution' : 'playing'
+
+  return { ...state, players, pendingEvents: remaining, phase }
+}
+
 export function applyEventResolution(
   player: PlayerState,
   result: ActionResult,

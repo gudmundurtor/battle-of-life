@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { GOAL_DEFINITIONS } from '@jones/shared'
 import { useGameStore } from '../store/gameStore'
+import { useT } from '../i18n'
 import { Button } from '../components/UI/Button'
 
 const DIFFICULTY_COLORS = {
@@ -9,13 +10,36 @@ const DIFFICULTY_COLORS = {
   hard:   'text-red-400 border-red-700',
 }
 
+// Pick `count` distinct random goal ids (Fisher–Yates shuffle)
+function pickRandomGoals(count: number): string[] {
+  const ids = GOAL_DEFINITIONS.map(g => g.id)
+  for (let i = ids.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[ids[i], ids[j]] = [ids[j], ids[i]]
+  }
+  return ids.slice(0, count)
+}
+
 export function GoalSelectionView() {
-  const { gameState, localPlayerId, confirmGoals, startPlaying } = useGameStore()
+  const { gameState, humanPlayerIds, confirmGoals, startPlaying } = useGameStore()
+  const t = useT()
+  const [selectionIndex, setSelectionIndex] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
+
+  // Pre-fill each player's selection with random goals so the user can start
+  // the game immediately (they can still change the picks before confirming).
+  useEffect(() => {
+    if (gameState && selected.length === 0) {
+      setSelected(pickRandomGoals(gameState.config.goalCount))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectionIndex, gameState])
 
   if (!gameState) return null
 
   const goalCount = gameState.config.goalCount
+  const currentPlayerId = humanPlayerIds[selectionIndex]
+  const currentPlayer = gameState.players[currentPlayerId]
 
   const toggle = (id: string) => {
     setSelected(prev =>
@@ -28,21 +52,65 @@ export function GoalSelectionView() {
   }
 
   const handleConfirm = () => {
-    confirmGoals(localPlayerId, selected)
-    startPlaying()
+    confirmGoals(currentPlayerId, selected)
+    const nextIndex = selectionIndex + 1
+    if (nextIndex >= humanPlayerIds.length) {
+      startPlaying()
+    } else {
+      setSelectionIndex(nextIndex)
+      setSelected([])
+    }
   }
+
+  const isLast = selectionIndex >= humanPlayerIds.length - 1
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: '#080D1A' }}>
-      <div className="max-w-2xl w-full space-y-5">
+      <div className="max-w-5xl w-full space-y-5">
+        {/* Header */}
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-slate-100">Veldu markmið þín</h1>
+          {humanPlayerIds.length > 1 && (
+            <div className="text-sm text-slate-500 mb-2">
+              {t.goalSelection.playerOf(selectionIndex + 1, humanPlayerIds.length)}
+            </div>
+          )}
+          <div className="flex items-center justify-center gap-2 mb-1">
+            {currentPlayer && (
+              <div className="w-3 h-3 rounded-full" style={{ background: currentPlayer.color }} />
+            )}
+            <h1 className="text-2xl font-bold text-slate-100">{currentPlayer?.name ?? ''}</h1>
+          </div>
           <p className="text-slate-500 text-sm mt-1">
-            Veldu {goalCount} markmið — þú þarft að ná þeim öllum til að vinna
+            {t.goalSelection.selectGoalsDesc(goalCount)}
           </p>
         </div>
 
-        {/* Progress indicator */}
+        {/* Player progress bar (multiplayer) */}
+        {humanPlayerIds.length > 1 && (
+          <div className="flex justify-center gap-1.5 flex-wrap">
+            {humanPlayerIds.map((pid, i) => {
+              const p = gameState.players[pid]
+              return (
+                <div
+                  key={pid}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all ${
+                    i === selectionIndex
+                      ? 'bg-blue-900/40 border border-blue-700 text-blue-300'
+                      : i < selectionIndex
+                      ? 'bg-green-900/30 border border-green-800 text-green-500'
+                      : 'border border-slate-800 text-slate-600'
+                  }`}
+                >
+                  <div className="w-2 h-2 rounded-full" style={{ background: p?.color ?? '#888' }} />
+                  {p?.name ?? pid}
+                  {i < selectionIndex && ' ✓'}
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Goal selection progress */}
         <div className="flex justify-center gap-2">
           {Array.from({ length: goalCount }).map((_, i) => (
             <div
@@ -59,10 +127,11 @@ export function GoalSelectionView() {
         </div>
 
         {/* Goal grid */}
-        <div className="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
           {GOAL_DEFINITIONS.map(goal => {
             const isSelected = selected.includes(goal.id)
             const isDisabled = !isSelected && selected.length >= goalCount
+            const gt = t.goals[goal.id]
 
             return (
               <button
@@ -84,9 +153,9 @@ export function GoalSelectionView() {
                     {goal.points}p
                   </div>
                 </div>
-                <div className="font-semibold text-slate-200 text-sm mt-2">{goal.name}</div>
-                <div className="text-xs text-slate-500 mt-1 leading-relaxed">{goal.description}</div>
-                <div className="text-xs text-slate-600 mt-2 italic">{goal.hint}</div>
+                <div className="font-semibold text-slate-200 text-sm mt-2">{gt?.name ?? goal.name}</div>
+                <div className="text-xs text-slate-500 mt-1 leading-relaxed">{gt?.description ?? goal.description}</div>
+                <div className="text-xs text-slate-600 mt-2 italic">{gt?.hint ?? goal.hint}</div>
               </button>
             )
           })}
@@ -99,8 +168,10 @@ export function GoalSelectionView() {
           disabled={selected.length < goalCount}
         >
           {selected.length < goalCount
-            ? `Veldu enn ${goalCount - selected.length} markmið`
-            : 'Hefja leik! →'}
+            ? t.goalSelection.selectMore(goalCount - selected.length)
+            : isLast
+            ? t.goalSelection.startGame
+            : t.goalSelection.confirmNext}
         </Button>
       </div>
     </div>

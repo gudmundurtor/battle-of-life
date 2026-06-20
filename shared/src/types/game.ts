@@ -11,11 +11,10 @@ export type GamePhase =
   | 'event_resolution'
   | 'finished'
 
-export type GameLength = 'short' | 'medium' | 'long'
+export type GameLength = 'short' | 'long'
 export const GAME_LENGTH_YEARS: Record<GameLength, number> = {
-  short: 5,
-  medium: 10,
-  long: 20,
+  short: 2,
+  long: 5,
 }
 
 export type AIDifficulty = 'easy' | 'medium' | 'hard'
@@ -32,7 +31,7 @@ export interface GameConfig {
 
 export const DEFAULT_CONFIG: GameConfig = {
   maxPlayers: 4,
-  gameLength: 'medium',
+  gameLength: 'short',
   aiDifficulty: 'medium',
   goalCount: 3,
   startingMoney: 5000,

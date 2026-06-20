@@ -22,6 +22,16 @@ body {
   50%       { box-shadow: 0 0 18px currentColor; }
 }
 
+@keyframes location-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(1.04); }
+}
+
+@keyframes ring-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--ring-color, #60A5FA); }
+  50%       { opacity: 0.8; box-shadow: 0 0 0 4px transparent; }
+}
+
 @keyframes ai-think {
   0%, 100% { opacity: 0.4; }
   50%       { opacity: 1; }
@@ -32,9 +42,30 @@ body {
   to   { transform: translateY(0);    opacity: 1; }
 }
 
-.animate-glow  { animation: pulse-glow 2s ease-in-out infinite; }
-.animate-think { animation: ai-think 0.7s ease-in-out infinite; }
-.animate-slide { animation: slide-up 0.25s ease-out; }
+@keyframes bounce-in {
+  0%   { transform: scale(0.85); opacity: 0; }
+  60%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes char-bob {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-3px); }
+}
+
+@keyframes bubble-pop {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-glow       { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-think      { animation: ai-think 0.7s ease-in-out infinite; }
+.animate-slide      { animation: slide-up 0.25s ease-out; }
+.animate-bounce-in  { animation: bounce-in 0.35s ease-out; }
+.animate-loc-pulse  { animation: location-pulse 1.8s ease-in-out infinite; }
+.animate-char-bob   { animation: char-bob 1.6s ease-in-out infinite; }
+.animate-bubble-pop { animation: bubble-pop 0.3s ease-out; }
 
 ::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: #0F1629; }

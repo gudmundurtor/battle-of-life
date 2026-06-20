@@ -1,6 +1,7 @@
 import type { PlayerStats, PlayerHiddenStats } from './stats.js'
 import type { PlayerHobby, Talent } from './hobby.js'
 import type { ActiveJob } from './job.js'
+import type { HousingTier } from '../data/housing.js'
 
 export interface ActiveEducation {
   institutionId: string
@@ -16,6 +17,7 @@ export interface ActionLogEntry {
   week: number
   actionType: string
   description: string
+  locationId?: string
 }
 
 export interface PlayerState {
@@ -31,6 +33,7 @@ export interface PlayerState {
 
   age: number
   locationId: string
+  housingTier: HousingTier
   job: ActiveJob | null
   education: ActiveEducation | null
   hobbies: PlayerHobby[]

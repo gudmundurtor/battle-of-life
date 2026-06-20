@@ -1,6 +1,8 @@
-import { BOARD_LOCATIONS, HOBBY_DEFINITIONS } from '@jones/shared'
+import { BOARD_LOCATIONS, HOBBY_DEFINITIONS, getHousingLocationId } from '@jones/shared'
 import type { GameState } from '@jones/shared'
 import { useGameStore } from '../../store/gameStore'
+import { useT } from '../../i18n'
+import { ACTION_ICONS, ACTION_COLORS } from '../../utils/player'
 import { Button } from '../UI/Button'
 
 interface ActionPanelProps {
@@ -11,6 +13,7 @@ interface ActionPanelProps {
 
 export function ActionPanel({ gameState, localPlayerId, selectedLocationId }: ActionPanelProps) {
   const { doAction, openJobPicker, practiceHobby, endMyTurn } = useGameStore()
+  const t = useT()
   const player = gameState.players[localPlayerId]
   const location = selectedLocationId ? BOARD_LOCATIONS.find(l => l.id === selectedLocationId) : null
   const currentPlayerId = gameState.playerOrder[gameState.currentPlayerIndex]
@@ -20,13 +23,13 @@ export function ActionPanel({ gameState, localPlayerId, selectedLocationId }: Ac
 
   if (!isMyTurn) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-600 text-sm">
-        Bíður eftir röð þinni…
+      <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-600">
+        <span className="text-4xl opacity-40">⏳</span>
+        <span className="text-sm">{t.game.waitingForTurn}</span>
       </div>
     )
   }
 
-  // Hobby options at this location
   const locationHobbyIds: Record<string, string> = {
     music_studio: 'music',
     art_studio: 'art',
@@ -37,76 +40,105 @@ export function ActionPanel({ gameState, localPlayerId, selectedLocationId }: Ac
   }
   const hobbyIdForLocation = selectedLocationId ? locationHobbyIds[selectedLocationId] : undefined
 
+  const actionLabel = (type: string): string => {
+    const key = type as keyof typeof t.game
+    return (t.game[key] as string | undefined) ?? type
+  }
+
   return (
     <div className="flex flex-col gap-2 h-full overflow-y-auto">
-      {location && (
-        <div className="text-xs text-slate-500 px-1 flex items-center gap-1 mb-1">
-          <span>{location.icon}</span>
-          <span className="font-medium text-slate-300">{location.name}</span>
+      {/* Location header or guidance */}
+      {location ? (
+        <div
+          className="flex items-center gap-2 px-3 py-2 rounded-xl mb-1"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
+        >
+          <span className="text-xl">{location.icon}</span>
+          <span className="font-semibold text-slate-200 text-sm">{t.locations[location.id] ?? location.name}</span>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-6 gap-2 text-center">
+          <span className="text-4xl">👆</span>
+          <p className="text-slate-400 text-sm font-medium">Smelltu á stað á borðinu</p>
+          <p className="text-slate-600 text-xs">til að sjá tiltækar aðgerðir</p>
         </div>
       )}
 
-      {/* Standard location actions */}
-      {location?.actions.map(action => {
+      {/* Location actions */}
+      {location?.actions
+        .filter(action => action.type !== 'rest' || location.id === getHousingLocationId(player.housingTier))
+        .map(action => {
         const canAfford = !action.moneyCost || player.money >= action.moneyCost
         const hasTime = player.timeUnitsLeft >= action.timeCost
         const disabled = !canAfford || !hasTime
 
-        // Job actions open picker instead
         if (action.type === 'apply_job') {
           return (
             <ActionButton
               key={action.type}
-              label={action.label}
-              subtitle={`${action.timeCost} TE · Opnar starfslista`}
+              type="apply_job"
+              label={actionLabel('apply_job')}
+              subtitle={`${action.timeCost} ${t.game.teUnit} · ${t.game.applyJobSubtitle}`}
               disabled={!hasTime}
               onClick={() => openJobPicker(location.id)}
             />
           )
         }
 
-        // Hobby actions handled specially
         if (action.type === 'practice_hobby' && hobbyIdForLocation) {
           const hobbyDef = HOBBY_DEFINITIONS.find(h => h.id === hobbyIdForLocation)
           const existing = player.hobbies.find(h => h.definitionId === hobbyIdForLocation)
+          const hobbyName = t.hobbies[hobbyIdForLocation]?.name ?? hobbyDef?.name ?? hobbyIdForLocation
+          const verb = existing ? t.game.practiceVerb : t.game.startVerb
           return (
             <ActionButton
               key={action.type}
-              label={hobbyDef ? `${hobbyDef.icon} ${existing ? 'Æfa' : 'Byrja'} ${hobbyDef.name}` : action.label}
-              subtitle={`${action.timeCost} TE · +wellbeing, +XP`}
+              type="practice_hobby"
+              label={hobbyDef ? `${hobbyDef.icon} ${verb} ${hobbyName}` : actionLabel('practice_hobby')}
+              subtitle={`${action.timeCost} ${t.game.teUnit} · ${t.game.hobbyXpSubtitle}`}
               disabled={!hasTime}
-              onClick={() => practiceHobby(hobbyIdForLocation)}
+              onClick={() => practiceHobby(hobbyIdForLocation, location.id)}
             />
           )
         }
 
+        const isWorkAction = action.type === 'work'
+        const employedHere = isWorkAction
+          ? !!(player.job?.definitionId && location.jobIds?.includes(player.job.definitionId))
+          : true
+        const workDisabled = isWorkAction && !employedHere
+        const finalDisabled = disabled || workDisabled
+        const workWarning = workDisabled ? t.game.notEmployedHere : undefined
+
         return (
           <ActionButton
             key={action.type}
-            label={action.label}
-            subtitle={`${action.timeCost} TE${action.moneyCost ? ` · ${action.moneyCost.toLocaleString()} kr` : ''}`}
-            disabled={disabled}
-            warning={!canAfford ? 'Ekki nægir peningar' : undefined}
-            onClick={() =>
-              doAction({ type: action.type, locationId: location.id })
-            }
+            type={action.type}
+            label={actionLabel(action.type)}
+            subtitle={`${action.timeCost} ${t.game.teUnit}${action.moneyCost ? ` · ${action.moneyCost.toLocaleString()} kr` : ''}`}
+            disabled={finalDisabled}
+            warning={workWarning ?? (!canAfford ? t.game.noMoney : !hasTime ? t.game.noTime : undefined)}
+            onClick={() => doAction({ type: action.type, locationId: location.id })}
           />
         )
       })}
 
-      {/* Practice existing hobbies anywhere */}
+      {/* Existing hobbies (anywhere) */}
       {!hobbyIdForLocation && player.hobbies.length > 0 && (
         <div className="mt-1">
-          <div className="text-xs text-slate-600 mb-1 px-1">Hobbyar</div>
+          <div className="text-xs text-slate-600 mb-1 px-1 uppercase tracking-wide">{t.game.hobbies}</div>
           {player.hobbies.map(h => {
             const def = HOBBY_DEFINITIONS.find(d => d.id === h.definitionId)
             if (!def) return null
-            const hasTime = player.timeUnitsLeft >= def.timeCostPerWeek
+            const hobbyName = t.hobbies[h.definitionId]?.name ?? def.name
+            const levelLabel = t.hobbyLevels[h.level] ?? h.level
+            const hasTime = player.timeUnitsLeft >= 1
             return (
               <ActionButton
                 key={h.definitionId}
-                label={`${def.icon} Æfa ${def.name}`}
-                subtitle={`${def.timeCostPerWeek} TE · ${h.level} (${h.xp} XP)`}
+                type="practice_hobby"
+                label={`${def.icon} ${t.game.practiceVerb} ${hobbyName}`}
+                subtitle={`1 ${t.game.teUnit} · ${levelLabel} (${h.xp} XP)`}
                 disabled={!hasTime}
                 onClick={() => practiceHobby(h.definitionId)}
               />
@@ -116,16 +148,12 @@ export function ActionPanel({ gameState, localPlayerId, selectedLocationId }: Ac
       )}
 
       {/* End turn */}
-      <div className="mt-auto pt-2 border-t border-slate-800">
-        <Button
-          variant="secondary"
-          fullWidth
-          onClick={endMyTurn}
-        >
-          Ljúka viku ↵
+      <div className="mt-auto pt-3 border-t border-slate-800">
+        <Button variant="secondary" fullWidth onClick={endMyTurn}>
+          {t.game.endTurn}
         </Button>
-        <p className="text-center text-xs text-slate-600 mt-1">
-          {player.timeUnitsLeft} TE eftir
+        <p className="text-center text-xs text-slate-600 mt-1.5">
+          {t.game.teLeft(player.timeUnitsLeft)}
         </p>
       </div>
     </div>
@@ -133,6 +161,7 @@ export function ActionPanel({ gameState, localPlayerId, selectedLocationId }: Ac
 }
 
 interface ActionButtonProps {
+  type: string
   label: string
   subtitle?: string
   disabled?: boolean
@@ -140,25 +169,45 @@ interface ActionButtonProps {
   onClick: () => void
 }
 
-function ActionButton({ label, subtitle, disabled, warning, onClick }: ActionButtonProps) {
+function ActionButton({ type, label, subtitle, disabled, warning, onClick }: ActionButtonProps) {
+  const color = ACTION_COLORS[type] ?? '#64748B'
+  const icon = ACTION_ICONS[type] ?? '▶'
+
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`
-        w-full text-left px-3 py-2 rounded-lg border transition-all duration-150
-        ${disabled
-          ? 'border-slate-800 bg-transparent text-slate-600 cursor-not-allowed'
-          : 'border-slate-700 bg-slate-800/50 hover:bg-slate-700/60 hover:border-slate-500 text-slate-200 cursor-pointer'}
-      `}
+      className="w-full text-left rounded-xl border transition-all duration-150 overflow-hidden"
+      style={{
+        borderColor: disabled ? '#1E293B' : `${color}50`,
+        background: disabled ? 'rgba(15,23,42,0.3)' : `${color}12`,
+        opacity: disabled ? 0.5 : 1,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+      }}
     >
-      <div className="text-sm font-medium">{label}</div>
-      {subtitle && !warning && (
-        <div className="text-xs text-slate-500 mt-0.5">{subtitle}</div>
-      )}
-      {warning && (
-        <div className="text-xs text-red-400 mt-0.5">{warning}</div>
-      )}
+      <div className="flex items-center gap-2.5 px-3 py-2.5">
+        {/* Color accent strip */}
+        <div
+          className="w-1 self-stretch rounded-full shrink-0"
+          style={{ background: disabled ? '#334155' : color }}
+        />
+        {/* Icon */}
+        <span className="text-lg shrink-0">{icon}</span>
+        {/* Text */}
+        <div className="flex-1 min-w-0">
+          <div
+            className="text-sm font-semibold truncate"
+            style={{ color: disabled ? '#475569' : '#E2E8F0' }}
+          >
+            {label}
+          </div>
+          {warning ? (
+            <div className="text-xs text-red-400 mt-0.5">{warning}</div>
+          ) : subtitle ? (
+            <div className="text-xs text-slate-500 mt-0.5">{subtitle}</div>
+          ) : null}
+        </div>
+      </div>
     </button>
   )
 }
