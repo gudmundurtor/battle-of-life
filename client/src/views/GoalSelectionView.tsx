@@ -21,7 +21,7 @@ function pickRandomGoals(count: number): string[] {
 }
 
 export function GoalSelectionView() {
-  const { gameState, humanPlayerIds, confirmGoals, startPlaying } = useGameStore()
+  const { gameState, humanPlayerIds, confirmGoals, startPlaying, online, myPlayerId } = useGameStore()
   const t = useT()
   const [selectionIndex, setSelectionIndex] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
@@ -36,6 +36,17 @@ export function GoalSelectionView() {
   }, [selectionIndex, gameState])
 
   if (!gameState) return null
+
+  // Online: once we've submitted our own goals, wait for the other players.
+  if (online && myPlayerId && (gameState.players[myPlayerId]?.goalIds.length ?? 0) > 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-3" style={{ background: '#080D1A' }}>
+        <div className="text-4xl">⏳</div>
+        <div className="text-slate-200 font-semibold">{t.online.goalsLocked}</div>
+        <div className="text-slate-500 text-sm">{t.online.waitingForOthers}</div>
+      </div>
+    )
+  }
 
   const goalCount = gameState.config.goalCount
   const currentPlayerId = humanPlayerIds[selectionIndex]

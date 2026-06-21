@@ -1,0 +1,17 @@
+# Render Blueprint for the realtime multiplayer server.
+# In Render: New + → Blueprint → point at this repo. It picks this file up.
+# The free plan sleeps when idle; the first request after a nap takes a few seconds.
+services:
+  - type: web
+    name: lifsbarattan-server
+    runtime: node
+    plan: free
+    # Install the whole workspace so @jones/shared is symlinked and tsx is available.
+    buildCommand: npm install
+    startCommand: npm run start --workspace=server
+    healthCheckPath: /health
+    envVars:
+      # Lock CORS to the deployed client. Change if the Vercel URL changes;
+      # use '*' only for quick local/manual testing.
+      - key: CLIENT_ORIGIN
+        value: https://lifsbarattan.vercel.app

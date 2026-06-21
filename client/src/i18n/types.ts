@@ -20,6 +20,39 @@ export interface Translations {
     language: string
   }
 
+  online: {
+    modeLocal: string
+    modeOnline: string
+    yourName: string
+    createGame: string
+    createDesc: string
+    joinGame: string
+    joinDesc: string
+    roomCodePlaceholder: string
+    create: string
+    join: string
+    or: string
+    connecting: string
+    waitingRoomTitle: string
+    roomCodeLabel: string
+    inviteLink: string
+    copy: string
+    copied: string
+    host: string
+    you: string
+    waitingForPlayers: string
+    needMorePlayers: string
+    waitingForHost: string
+    start: string
+    leave: string
+    errNotFound: string
+    errFull: string
+    errAlreadyStarted: string
+    errGeneric: string
+    waitingForOthers: string
+    goalsLocked: string
+  }
+
   goalSelection: {
     playerOf: (n: number, total: number) => string
     chooseGoals: string

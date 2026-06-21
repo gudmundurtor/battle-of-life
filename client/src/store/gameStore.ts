@@ -13,9 +13,51 @@ import type { HobbyLevel } from '@jones/shared'
 import { getTranslations } from '../i18n'
 import { translateActionResult } from '../i18n/actionResult'
 import { useLanguageStore } from './languageStore'
+import { getSocket, disconnectSocket } from '../net/socket'
 
 function t() {
   return getTranslations(useLanguageStore.getState().language)
+}
+
+export interface RoomPlayer {
+  playerId: string
+  name: string
+  connected: boolean
+}
+
+interface LobbyPayload {
+  code: string
+  hostPlayerId: string
+  config: GameConfig
+  players: RoomPlayer[]
+  canStart: boolean
+}
+
+// Register the realtime listeners exactly once per live socket. `leaveOnline`
+// resets the flag so a fresh socket rebinds after a disconnect.
+let onlineBound = false
+function bindOnlineListeners(
+  set: (partial: Partial<GameStore>) => void,
+  get: () => GameStore,
+) {
+  if (onlineBound) return
+  onlineBound = true
+  const socket = getSocket()
+  socket.on('lobby', (payload: LobbyPayload) => {
+    set({
+      roomCode: payload.code,
+      hostPlayerId: payload.hostPlayerId,
+      roomPlayers: payload.players,
+      canStart: payload.canStart,
+    })
+  })
+  socket.on('state', (state: GameState) => {
+    const myId = get().myPlayerId
+    set({ gameState: state, humanPlayerIds: myId ? [myId] : get().humanPlayerIds })
+  })
+  socket.on('result', (result: import('@jones/shared').ActionResult) => {
+    set({ statusMessage: translateActionResult(result, t()) })
+  })
 }
 
 export interface AIRecapAction {
@@ -49,6 +91,19 @@ interface GameStore {
   setLastNewsWeek: (week: number) => void
   quitGame: () => void
 
+  // Online multiplayer (null/false when playing locally)
+  online: boolean
+  roomCode: string | null
+  myPlayerId: string | null
+  hostPlayerId: string | null
+  roomPlayers: RoomPlayer[]
+  canStart: boolean
+  onlineError: string | null
+  createOnlineGame: (name: string, config: GameConfig) => Promise<{ ok: boolean; code?: string }>
+  joinOnlineGame: (code: string, name: string) => Promise<{ ok: boolean; error?: string }>
+  startOnlineGame: () => void
+  leaveOnline: () => void
+
   initGame: (config: GameConfig, playerNames: string[]) => void
   confirmGoals: (playerId: string, goalIds: string[]) => void
   startPlaying: () => void
@@ -81,23 +136,75 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   aiTurnRecap: null,
   lastNewsWeek: null,
 
+  online: false,
+  roomCode: null,
+  myPlayerId: null,
+  hostPlayerId: null,
+  roomPlayers: [],
+  canStart: false,
+  onlineError: null,
+
+  createOnlineGame: (name, config) => new Promise((resolve) => {
+    bindOnlineListeners(set, get)
+    getSocket().emit('create', { name, config }, (res: { ok: boolean; code?: string; playerId?: string }) => {
+      if (res.ok && res.playerId) {
+        set({
+          online: true, roomCode: res.code ?? null, myPlayerId: res.playerId,
+          localPlayerId: res.playerId, humanPlayerIds: [res.playerId], onlineError: null,
+        })
+      }
+      resolve({ ok: res.ok, code: res.code })
+    })
+  }),
+
+  joinOnlineGame: (code, name) => new Promise((resolve) => {
+    bindOnlineListeners(set, get)
+    const upper = code.toUpperCase()
+    getSocket().emit('join', { code: upper, name }, (res: { ok: boolean; playerId?: string; error?: string }) => {
+      if (res.ok && res.playerId) {
+        set({
+          online: true, roomCode: upper, myPlayerId: res.playerId,
+          localPlayerId: res.playerId, humanPlayerIds: [res.playerId], onlineError: null,
+        })
+      } else {
+        set({ onlineError: res.error ?? 'error' })
+      }
+      resolve({ ok: res.ok, error: res.error })
+    })
+  }),
+
+  startOnlineGame: () => { getSocket().emit('start', {}) },
+
+  leaveOnline: () => {
+    disconnectSocket()
+    onlineBound = false
+    set({
+      online: false, roomCode: null, myPlayerId: null, hostPlayerId: null,
+      roomPlayers: [], canStart: false, onlineError: null,
+      gameState: null, localPlayerId: 'player_0', humanPlayerIds: ['player_0'],
+    })
+  },
+
   closeAIRecap: () => set({ aiTurnRecap: null }),
   setLastNewsWeek: (week) => set({ lastNewsWeek: week }),
 
   // Hætta í leiknum og fara aftur á upphafsskjáinn (hreinsar vistaða stöðu).
-  quitGame: () => set({
-    gameState: null,
-    localPlayerId: 'player_0',
-    humanPlayerIds: ['player_0'],
-    isAIThinking: false,
-    showJobPicker: false,
-    jobPickerLocationId: null,
-    showMealPicker: false,
-    mealPickerLocationId: null,
-    statusMessage: null,
-    aiTurnRecap: null,
-    lastNewsWeek: null,
-  }),
+  quitGame: () => {
+    if (get().online) { get().leaveOnline(); return }
+    set({
+      gameState: null,
+      localPlayerId: 'player_0',
+      humanPlayerIds: ['player_0'],
+      isAIThinking: false,
+      showJobPicker: false,
+      jobPickerLocationId: null,
+      showMealPicker: false,
+      mealPickerLocationId: null,
+      statusMessage: null,
+      aiTurnRecap: null,
+      lastNewsWeek: null,
+    })
+  },
 
   initGame: (config, playerNames) => {
     const state = createGame(config, playerNames)
@@ -106,20 +213,25 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   confirmGoals: (playerId, goalIds) => {
-    const { gameState } = get()
+    const { gameState, online } = get()
     if (!gameState) return
+    if (online) { getSocket().emit('assignGoals', { goalIds }); return }
     set({ gameState: assignGoals(gameState, playerId, goalIds) })
   },
 
   startPlaying: () => {
-    const { gameState } = get()
+    const { gameState, online } = get()
     if (!gameState) return
+    // Online: the server starts the game automatically once every player has
+    // submitted their goals, so there is nothing to do locally here.
+    if (online) return
     set({ gameState: startGame(gameState) })
   },
 
   doAction: (action) => {
-    const { gameState, localPlayerId } = get()
+    const { gameState, localPlayerId, online } = get()
     if (!gameState) return
+    if (online) { getSocket().emit('action', { action }); return }
 
     const { state: newState, result } = performAction(gameState, localPlayerId, action)
     set({
@@ -135,8 +247,14 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   closeMealPicker: () => set({ showMealPicker: false, mealPickerLocationId: null }),
 
   buyMeal: (dishId) => {
-    const { gameState, localPlayerId, mealPickerLocationId } = get()
+    const { gameState, localPlayerId, mealPickerLocationId, online } = get()
     if (!gameState || !mealPickerLocationId) return
+
+    if (online) {
+      getSocket().emit('action', { action: { type: 'buy_meal', locationId: mealPickerLocationId, params: { dishId } } })
+      set({ showMealPicker: false, mealPickerLocationId: null })
+      return
+    }
 
     const { state: newState, result } = performAction(gameState, localPlayerId, {
       type: 'buy_meal',
@@ -152,8 +270,15 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   applyForJob: (jobId) => {
-    const { gameState, localPlayerId, jobPickerLocationId } = get()
+    const { gameState, localPlayerId, jobPickerLocationId, online } = get()
     if (!gameState) return
+
+    if (online) {
+      const loc = jobPickerLocationId ?? gameState.players[localPlayerId]?.locationId
+      getSocket().emit('action', { action: { type: 'apply_job', locationId: loc, params: { jobId } } })
+      set({ showJobPicker: false, jobPickerLocationId: null })
+      return
+    }
 
     const player = gameState.players[localPlayerId]
     const jobDef = getJobById(jobId)
@@ -207,8 +332,14 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   practiceHobby: (hobbyId, locationId) => {
-    const { gameState, localPlayerId } = get()
+    const { gameState, localPlayerId, online } = get()
     if (!gameState) return
+
+    if (online) {
+      const loc = locationId ?? gameState.players[localPlayerId]?.locationId
+      getSocket().emit('action', { action: { type: 'practice_hobby', locationId: loc, params: { hobbyId } } })
+      return
+    }
 
     const player = gameState.players[localPlayerId]
     const hobbyDef = HOBBY_DEFINITIONS.find(h => h.id === hobbyId)
@@ -271,8 +402,9 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   endMyTurn: () => {
-    const { gameState, localPlayerId, humanPlayerIds } = get()
+    const { gameState, localPlayerId, humanPlayerIds, online } = get()
     if (!gameState) return
+    if (online) { getSocket().emit('endTurn'); return }
 
     const newState = autoResolveAIEvents(endTurn(gameState, localPlayerId), EVENT_DEFINITIONS)
     const nextId = newState.playerOrder[newState.currentPlayerIndex]
@@ -293,8 +425,9 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   },
 
   resolveEvent: (eventId, choiceId) => {
-    const { gameState, localPlayerId } = get()
+    const { gameState, localPlayerId, online } = get()
     if (!gameState) return
+    if (online) { getSocket().emit('resolveEvent', { eventId, choiceId }); return }
 
     const eventDef = EVENT_DEFINITIONS.find(e => e.id === eventId)
     const player = gameState.players[localPlayerId]
@@ -440,12 +573,16 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
   name: 'jones-game',
   // Geyma aðeins eiginlega leikstöðu (ekki tímabundið UI-ástand eins og
   // valglugga eða "AI að hugsa"), svo F5/endurhleðsla haldi leiknum áfram.
-  partialize: (state) => ({
-    gameState: state.gameState,
-    localPlayerId: state.localPlayerId,
-    humanPlayerIds: state.humanPlayerIds,
-    lastNewsWeek: state.lastNewsWeek,
-  }),
+  // Never persist an online game: the server owns that state and the socket is
+  // gone after a reload, so a saved snapshot would be stale and unplayable.
+  partialize: (state) => state.online
+    ? { lastNewsWeek: state.lastNewsWeek }
+    : {
+        gameState: state.gameState,
+        localPlayerId: state.localPlayerId,
+        humanPlayerIds: state.humanPlayerIds,
+        lastNewsWeek: state.lastNewsWeek,
+      },
   onRehydrateStorage: () => (state) => {
     // Ef endurhlaðið var á meðan röðin var hjá tölvuleikmanni, halda
     // AI-umferðinni áfram svo leikurinn frjósi ekki.
