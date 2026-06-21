@@ -416,7 +416,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
 
         set({ gameState: newState })
         // The figure walks to the new tile (~0.55s CSS transition); then it
-        // pauses ~0.5s standing on the spot before moving on, so Jones isn't
+        // pauses ~0.5s standing on the spot before moving on, so Georg isn't
         // perpetually in motion.
         setTimeout(step, 1050)
       } catch (err) {

@@ -1,11 +1,11 @@
-# Jones in the Fast Lane — Nútímavæð útgáfa
+# Lífsbaráttan (The Battle of Life)
 ## Hönnunarskjal v0.1
 
 ---
 
 ## 1. Hugmyndafræði
 
-Leikurinn er innblásinn af Jones in the Fast Lane (Sierra, 1990) en er nútímavæður og sjálfstæður leikur. Við geymum kjarnahugmyndina — þú keppist við aðra um að ná markmiðum í lífi — en útfærum hana með dýpri mekaník og nútímalegri framkvæmd.
+Lífsbaráttan er sjálfstæður lífshermir innblásinn af klassískum borðspila-lífshermum. Kjarnahugmyndin er einföld — þú keppist við aðra um að ná markmiðum í lífi — en hún er útfærð með eigin mekaník, eigin grafík og nútímalegri framkvæmd.
 
 Leikurinn speglar raunverulegt líf: tími er takmarkaður, ákvarðanir hafa afleiðingar, og oft þarf maður að fórna einu til að fá annað.
 

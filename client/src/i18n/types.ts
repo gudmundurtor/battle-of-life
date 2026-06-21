@@ -1,5 +1,6 @@
 export interface Translations {
   lobby: {
+    title: string
     tagline: string
     players: string
     playerName: (n: number) => string
@@ -7,14 +8,14 @@ export interface Translations {
     gameLength: string
     short: string
     long: string
-    jonesDifficulty: string
+    rivalDifficulty: string
     easy: string
     mediumDiff: string
     hard: string
     goalCountLabel: string
     goalsN: (n: number) => string
-    jonesCompetes: string
-    jonesCompetesDesc: string
+    rivalCompetes: string
+    rivalCompetesDesc: string
     startGame: string
     language: string
   }

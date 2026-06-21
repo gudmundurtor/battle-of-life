@@ -73,7 +73,7 @@ export function GameView() {
   const isMyTurn = currentPlayerId === localPlayerId
   const otherPlayerIds = gameState.playerOrder.filter(id => id !== localPlayerId)
 
-  // Þegar tölvuleikmaður (Jones) er á ferð sýnum við HANS upplýsingar hægra
+  // Þegar tölvuleikmaður (Georg) er á ferð sýnum við HANS upplýsingar hægra
   // megin (auður, þekking o.s.frv.) svo notandinn sjái hvað hann er með.
   const hudPlayer = (!isMyTurn && currentPlayer?.isAI) ? currentPlayer : localPlayer
 
@@ -87,7 +87,7 @@ export function GameView() {
       >
         {/* Logo + date */}
         <div className="shrink-0 flex items-center gap-2">
-          <span className="font-black text-orange-400 text-lg tracking-tight">JONES</span>
+          <span className="font-black text-orange-400 text-lg tracking-tight">{t.lobby.title}</span>
           <span
             className="text-xs px-2 py-0.5 rounded-full text-slate-400"
             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}

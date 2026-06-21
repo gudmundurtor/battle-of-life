@@ -57,7 +57,7 @@ export function LobbyView() {
         {/* Title + language picker */}
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-1" style={{ color: '#FF6B35' }}>
-            Jones
+            {t.lobby.title}
           </h1>
           <p className="text-slate-400 text-sm mb-4">{t.lobby.tagline}</p>
 
@@ -142,7 +142,7 @@ export function LobbyView() {
           </div>
 
           <div>
-            <label className="text-xs text-slate-500 block mb-2">{t.lobby.jonesDifficulty}</label>
+            <label className="text-xs text-slate-500 block mb-2">{t.lobby.rivalDifficulty}</label>
             <div className="grid grid-cols-3 gap-2">
               {(['easy', 'medium', 'hard'] as const).map(diff => (
                 <button
@@ -180,13 +180,13 @@ export function LobbyView() {
           </div>
         </div>
 
-        {/* Jones AI info (single player only) */}
+        {/* Rival AI info (single player only) */}
         {playerNames.length === 1 && (
           <div className="bg-orange-950/30 border border-orange-800/40 rounded-xl p-3 flex gap-3 items-start">
             <span className="text-2xl">🤖</span>
             <div>
-              <div className="text-sm font-medium text-orange-300">{t.lobby.jonesCompetes}</div>
-              <div className="text-xs text-orange-700 mt-0.5">{t.lobby.jonesCompetesDesc}</div>
+              <div className="text-sm font-medium text-orange-300">{t.lobby.rivalCompetes}</div>
+              <div className="text-xs text-orange-700 mt-0.5">{t.lobby.rivalCompetesDesc}</div>
             </div>
           </div>
         )}

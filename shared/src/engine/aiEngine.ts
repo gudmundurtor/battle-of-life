@@ -46,7 +46,7 @@ function generatePossibleActions(player: PlayerState, _state: GameState): Player
   // Keep at least one week's rent in reserve so the AI doesn't bankrupt itself.
   const rentBuffer = getWeeklyRent(player.housingTier)
 
-  // Skoða aðgerðir á ÖLLUM reitum svo Jones geti ferðast á viðkomandi stað.
+  // Skoða aðgerðir á ÖLLUM reitum svo Georg geti ferðast á viðkomandi stað.
   // Avatarinn hreyfist þegar performAction setur locationId = action.locationId.
   for (const location of BOARD_LOCATIONS) {
     for (const locAction of location.actions) {
@@ -200,7 +200,7 @@ function scoreAction(
       score += 1
   }
 
-  // Jones er svolítið random til að vera skemmtilegt
+  // Georg er svolítið random til að vera skemmtilegt
   const randomNoise = difficulty === 'easy' ? (Math.random() - 0.5) * 15
     : difficulty === 'medium' ? (Math.random() - 0.5) * 8
     : (Math.random() - 0.5) * 3

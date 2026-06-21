@@ -30,9 +30,9 @@ export function createGame(config: GameConfig, playerNames: string[]): GameState
     players[id] = createPlayer(id, name, i === playerNames.length - 1 && i > 0)
   })
 
-  // Alltaf a.m.k. Jones sem AI keppinautur ef bara 1 mannlegur leikmaður
+  // Alltaf a.m.k. Georg sem AI keppinautur ef bara 1 mannlegur leikmaður
   if (playerNames.length === 1) {
-    players['jones'] = createPlayer('jones', 'Jones', true)
+    players['jones'] = createPlayer('jones', 'Georg', true)
     playerOrder.push('jones')
   }
 
