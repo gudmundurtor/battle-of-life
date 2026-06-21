@@ -115,7 +115,7 @@ export function performAction(
   if (!player || state.playerOrder[state.currentPlayerIndex] !== playerId) {
     return {
       state,
-      result: { success: false, effects: [], moneyDelta: 0, messages: ['Ekki röð þín'] },
+      result: { success: false, effects: [], moneyDelta: 0, code: 'notYourTurn', messages: ['Ekki röð þín'] },
     }
   }
 
@@ -123,7 +123,7 @@ export function performAction(
   if (!location) {
     return {
       state,
-      result: { success: false, effects: [], moneyDelta: 0, messages: ['Staðurinn finnst ekki'] },
+      result: { success: false, effects: [], moneyDelta: 0, code: 'locationNotFound', messages: ['Staðurinn finnst ekki'] },
     }
   }
 
@@ -131,14 +131,14 @@ export function performAction(
   if (!locationAction) {
     return {
       state,
-      result: { success: false, effects: [], moneyDelta: 0, messages: ['Aðgerð ekki í boði hér'] },
+      result: { success: false, effects: [], moneyDelta: 0, code: 'actionUnavailable', messages: ['Aðgerð ekki í boði hér'] },
     }
   }
 
   if (player.timeUnitsLeft < locationAction.timeCost) {
     return {
       state,
-      result: { success: false, effects: [], moneyDelta: 0, messages: ['Ekki nægur tími'] },
+      result: { success: false, effects: [], moneyDelta: 0, code: 'notEnoughTime', messages: ['Ekki nægur tími'] },
     }
   }
 
@@ -146,11 +146,18 @@ export function performAction(
   if (player.money < moneyCost) {
     return {
       state,
-      result: { success: false, effects: [], moneyDelta: 0, messages: ['Ekki nægir peningar'] },
+      result: { success: false, effects: [], moneyDelta: 0, code: 'notEnoughMoney', messages: ['Ekki nægir peningar'] },
     }
   }
 
   const result = resolveAction(player, action, state)
+
+  // A "soft" failure (e.g. not employed here, dish not found) must not cost the
+  // player anything — return the state untouched so no time unit is wasted.
+  if (!result.success) {
+    return { state, result }
+  }
+
   const { stats, hidden, money } = applyStatEffects(player, result.effects)
 
   // Moving to a better apartment changes the player's housing tier (and future rent).
@@ -219,6 +226,7 @@ function resolveAction(player: PlayerState, action: PlayerAction, _state: GameSt
           { stat: 'stress', value: -8 },
         ],
         moneyDelta: 0,
+        code: 'socialized',
         messages: ['Hittist við vini'],
       }
 
@@ -230,6 +238,7 @@ function resolveAction(player: PlayerState, action: PlayerAction, _state: GameSt
           { stat: 'stress', value: -12 },
         ],
         moneyDelta: 0,
+        code: 'rested',
         messages: ['Hvílaðist vel'],
       }
 
@@ -241,6 +250,7 @@ function resolveAction(player: PlayerState, action: PlayerAction, _state: GameSt
           { stat: 'stress', value: -10 },
         ],
         moneyDelta: -200,
+        code: 'exercised',
         messages: ['Fór í líkamsrækt'],
       }
 
@@ -252,6 +262,7 @@ function resolveAction(player: PlayerState, action: PlayerAction, _state: GameSt
           { stat: 'wellbeing', value: 5 },
         ],
         moneyDelta: -2000,
+        code: 'boughtClothes',
         messages: ['Keypti ný föt'],
       }
 
@@ -263,11 +274,52 @@ function resolveAction(player: PlayerState, action: PlayerAction, _state: GameSt
           { stat: 'stress', value: -3 },
         ],
         moneyDelta: -500,
+        code: 'boughtFood',
         messages: ['Keypti mat'],
       }
 
     case 'buy_meal':
       return resolveBuyMeal(player, action.params)
+
+    case 'group_session':
+      return {
+        success: true,
+        effects: [
+          { stat: 'network', value: 4 },
+          { stat: 'wellbeing', value: 6 },
+          { stat: 'reputation', value: 3 },
+          { stat: 'stress', value: -4 },
+        ],
+        moneyDelta: 0,
+        code: 'groupSession',
+        messages: ['Æfði með hóp'],
+      }
+
+    case 'form_group':
+      return {
+        success: true,
+        effects: [
+          { stat: 'network', value: 6 },
+          { stat: 'reputation', value: 4 },
+          { stat: 'stress', value: 2 },
+        ],
+        moneyDelta: 0,
+        code: 'formedGroup',
+        messages: ['Stofnaði hóp'],
+      }
+
+    case 'join_group':
+      return {
+        success: true,
+        effects: [
+          { stat: 'network', value: 5 },
+          { stat: 'wellbeing', value: 4 },
+          { stat: 'stress', value: -3 },
+        ],
+        moneyDelta: 0,
+        code: 'joinedGroup',
+        messages: ['Gekk í hóp'],
+      }
 
     case 'apply_job':
       return resolveApplyJob(player, action.params)
@@ -281,20 +333,21 @@ function resolveAction(player: PlayerState, action: PlayerAction, _state: GameSt
           { stat: 'stress', value: -5 },
         ],
         moneyDelta: -(action.params?.cost as number ?? 5000),
+        code: 'upgradedHousing',
         messages: ['Flutti í betri íbúð'],
       }
 
     default:
-      return { success: false, effects: [], moneyDelta: 0, messages: ['Óþekkt aðgerð'] }
+      return { success: false, effects: [], moneyDelta: 0, code: 'unknownAction', messages: ['Óþekkt aðgerð'] }
   }
 }
 
 function resolveWork(player: PlayerState): ActionResult {    if (!player.job) {
-    return { success: false, effects: [], moneyDelta: 0, messages: ['Þú ert ekki í vinnu'] }
+    return { success: false, effects: [], moneyDelta: 0, code: 'notWorking', messages: ['Þú ert ekki í vinnu'] }
   }
   const jobDef = getJobById(player.job.definitionId)
   if (!jobDef) {
-    return { success: false, effects: [], moneyDelta: 0, messages: ['Vinnustaður finnst ekki'] }
+    return { success: false, effects: [], moneyDelta: 0, code: 'workplaceNotFound', messages: ['Vinnustaður finnst ekki'] }
   }
   return {
     success: true,
@@ -303,6 +356,8 @@ function resolveWork(player: PlayerState): ActionResult {    if (!player.job) {
       { stat: 'stress', value: jobDef.stressGainPerWeek * 0.5 },
     ],
     moneyDelta: jobDef.weeklySalary,
+    code: 'worked',
+    codeParams: { jobId: player.job.definitionId },
     messages: [`Vann sem ${jobDef.title}`],
   }
 }
@@ -316,6 +371,8 @@ function resolveStudy(_player: PlayerState): ActionResult {
       { stat: 'stress', value: 3 },
     ],
     moneyDelta: 0,
+    code: 'studied',
+    codeParams: { amount: knowledgeGain },
     messages: [`Lærði — þekking +${knowledgeGain}`],
   }
 }
@@ -324,7 +381,7 @@ function resolvePracticeHobby(_player: PlayerState, params?: Record<string, unkn
   const hobbyId = params?.hobbyId as string
   const hobbyDef = HOBBY_DEFINITIONS.find(h => h.id === hobbyId)
   if (!hobbyDef) {
-    return { success: false, effects: [], moneyDelta: 0, messages: ['Hobby finnst ekki'] }
+    return { success: false, effects: [], moneyDelta: 0, code: 'hobbyNotFound', messages: ['Hobby finnst ekki'] }
   }
   return {
     success: true,
@@ -333,6 +390,8 @@ function resolvePracticeHobby(_player: PlayerState, params?: Record<string, unkn
       { stat: 'stress', value: -5 },
     ],
     moneyDelta: 0,
+    code: 'practiced',
+    codeParams: { hobbyId },
     messages: [`Æfði ${hobbyDef.name}`],
     triggeredEventId: undefined,
   }
@@ -342,15 +401,17 @@ function resolveBuyMeal(player: PlayerState, params?: Record<string, unknown>): 
   const dishId = params?.dishId as string
   const dish = dishId ? getMenuItemById(dishId) : null
   if (!dish) {
-    return { success: false, effects: [], moneyDelta: 0, messages: ['Rétturinn finnst ekki'] }
+    return { success: false, effects: [], moneyDelta: 0, code: 'dishNotFound', messages: ['Rétturinn finnst ekki'] }
   }
   if (player.money < dish.price) {
-    return { success: false, effects: [], moneyDelta: 0, messages: ['Ekki nægir peningar'] }
+    return { success: false, effects: [], moneyDelta: 0, code: 'notEnoughMoney', messages: ['Ekki nægir peningar'] }
   }
   return {
     success: true,
     effects: dish.effects,
     moneyDelta: -dish.price,
+    code: 'boughtMeal',
+    codeParams: { dishId: dish.id },
     messages: [`Keypti ${dish.name}`],
   }
 }

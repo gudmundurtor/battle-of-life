@@ -1,4 +1,4 @@
-import { BOARD_LOCATIONS, HOBBY_DEFINITIONS, getHousingLocationId } from '@jones/shared'
+import { BOARD_LOCATIONS, HOBBY_DEFINITIONS, getHousingLocationId, getVenueHobbyId, HOME_HOBBY_IDS } from '@jones/shared'
 import type { GameState } from '@jones/shared'
 import { useGameStore } from '../../store/gameStore'
 import { useT } from '../../i18n'
@@ -12,7 +12,7 @@ interface ActionPanelProps {
 }
 
 export function ActionPanel({ gameState, localPlayerId, selectedLocationId }: ActionPanelProps) {
-  const { doAction, openJobPicker, practiceHobby, endMyTurn } = useGameStore()
+  const { doAction, openJobPicker, openMealPicker, practiceHobby, endMyTurn } = useGameStore()
   const t = useT()
   const player = gameState.players[localPlayerId]
   const location = selectedLocationId ? BOARD_LOCATIONS.find(l => l.id === selectedLocationId) : null
@@ -30,15 +30,12 @@ export function ActionPanel({ gameState, localPlayerId, selectedLocationId }: Ac
     )
   }
 
-  const locationHobbyIds: Record<string, string> = {
-    music_studio: 'music',
-    art_studio: 'art',
-    library: 'writing',
-    gym: 'fitness',
-    park: 'fitness',
-    online_courses: 'programming',
-  }
-  const hobbyIdForLocation = selectedLocationId ? locationHobbyIds[selectedLocationId] : undefined
+  const hobbyIdForLocation = selectedLocationId ? getVenueHobbyId(selectedLocationId) : undefined
+  const isHome = !!location && location.id === getHousingLocationId(player.housingTier)
+  // At home: keep up any owned hobby, plus start home-only hobbies (e.g. cooking).
+  const homeHobbyIds = isHome
+    ? Array.from(new Set([...player.hobbies.map(h => h.definitionId), ...HOME_HOBBY_IDS]))
+    : []
 
   const actionLabel = (type: string): string => {
     const key = type as keyof typeof t.game
@@ -85,6 +82,20 @@ export function ActionPanel({ gameState, localPlayerId, selectedLocationId }: Ac
           )
         }
 
+        if (action.type === 'buy_meal') {
+          return (
+            <ActionButton
+              key={action.type}
+              type="buy_meal"
+              label={(t.game.buy_meal as string | undefined) ?? action.type}
+              subtitle={`${action.timeCost} ${t.game.teUnit}`}
+              disabled={!hasTime}
+              warning={!hasTime ? t.game.noTime : undefined}
+              onClick={() => openMealPicker(location.id)}
+            />
+          )
+        }
+
         if (action.type === 'practice_hobby' && hobbyIdForLocation) {
           const hobbyDef = HOBBY_DEFINITIONS.find(h => h.id === hobbyIdForLocation)
           const existing = player.hobbies.find(h => h.definitionId === hobbyIdForLocation)
@@ -123,24 +134,26 @@ export function ActionPanel({ gameState, localPlayerId, selectedLocationId }: Ac
         )
       })}
 
-      {/* Existing hobbies (anywhere) */}
-      {!hobbyIdForLocation && player.hobbies.length > 0 && (
+      {/* Hobbies at home: keep up owned hobbies + start home-only hobbies */}
+      {isHome && homeHobbyIds.length > 0 && (
         <div className="mt-1">
           <div className="text-xs text-slate-600 mb-1 px-1 uppercase tracking-wide">{t.game.hobbies}</div>
-          {player.hobbies.map(h => {
-            const def = HOBBY_DEFINITIONS.find(d => d.id === h.definitionId)
+          {homeHobbyIds.map(hobbyId => {
+            const def = HOBBY_DEFINITIONS.find(d => d.id === hobbyId)
             if (!def) return null
-            const hobbyName = t.hobbies[h.definitionId]?.name ?? def.name
-            const levelLabel = t.hobbyLevels[h.level] ?? h.level
+            const existing = player.hobbies.find(h => h.definitionId === hobbyId)
+            const hobbyName = t.hobbies[hobbyId]?.name ?? def.name
+            const verb = existing ? t.game.practiceVerb : t.game.startVerb
+            const levelLabel = existing ? (t.hobbyLevels[existing.level] ?? existing.level) : t.game.hobbyXpSubtitle
             const hasTime = player.timeUnitsLeft >= 1
             return (
               <ActionButton
-                key={h.definitionId}
+                key={hobbyId}
                 type="practice_hobby"
-                label={`${def.icon} ${t.game.practiceVerb} ${hobbyName}`}
-                subtitle={`1 ${t.game.teUnit} · ${levelLabel} (${h.xp} XP)`}
+                label={`${def.icon} ${verb} ${hobbyName}`}
+                subtitle={existing ? `1 ${t.game.teUnit} · ${levelLabel} (${existing.xp} XP)` : `1 ${t.game.teUnit} · ${levelLabel}`}
                 disabled={!hasTime}
-                onClick={() => practiceHobby(h.definitionId)}
+                onClick={() => practiceHobby(hobbyId, location!.id)}
               />
             )
           })}

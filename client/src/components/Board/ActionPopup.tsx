@@ -1,4 +1,4 @@
-import { BOARD_LOCATIONS, HOBBY_DEFINITIONS, getHousingLocationId } from '@jones/shared'
+import { BOARD_LOCATIONS, HOBBY_DEFINITIONS, getHousingLocationId, getVenueHobbyId, HOME_HOBBY_IDS } from '@jones/shared'
 import type { GameState } from '@jones/shared'
 import { useGameStore } from '../../store/gameStore'
 import { useT } from '../../i18n'
@@ -13,15 +13,6 @@ interface ActionPopupProps {
   onClose: () => void
 }
 
-const HOBBY_FOR_LOC: Record<string, string> = {
-  music_studio: 'music',
-  art_studio: 'art',
-  library: 'writing',
-  gym: 'fitness',
-  park: 'fitness',
-  online_courses: 'programming',
-}
-
 export function ActionPopup({ locationId, gameState, localPlayerId, anchorPct, onClose }: ActionPopupProps) {
   const { doAction, openJobPicker, openMealPicker, practiceHobby, endMyTurn } = useGameStore()
   const t = useT()
@@ -34,7 +25,11 @@ export function ActionPopup({ locationId, gameState, localPlayerId, anchorPct, o
 
   if (!player || !location) return null
 
-  const hobbyIdForLocation = HOBBY_FOR_LOC[locationId]
+  const hobbyIdForLocation = getVenueHobbyId(locationId)
+  const isHome = location.id === getHousingLocationId(player.housingTier)
+  const homeHobbyIds = isHome
+    ? Array.from(new Set([...player.hobbies.map(h => h.definitionId), ...HOME_HOBBY_IDS]))
+    : []
   const locName = t.locations[locationId] ?? location.name
 
   // Determine popup position: open right unless near right edge, flip up near bottom
@@ -141,6 +136,31 @@ export function ActionPopup({ locationId, gameState, localPlayerId, anchorPct, o
               />
             )
           })}
+
+          {/* Hobbies at home: keep up owned hobbies + start home-only hobbies */}
+          {isHome && homeHobbyIds.length > 0 && (
+            <div className="pt-1 border-t border-slate-800 space-y-1.5">
+              {homeHobbyIds.map(hobbyId => {
+                const def = HOBBY_DEFINITIONS.find(d => d.id === hobbyId)
+                if (!def) return null
+                const existing = player.hobbies.find(h => h.definitionId === hobbyId)
+                const name = t.hobbies[hobbyId]?.name ?? def.name
+                const verb = existing ? t.game.practiceVerb : t.game.startVerb
+                const hasTime = player.timeUnitsLeft >= 1
+                return (
+                  <PopupAction
+                    key={hobbyId}
+                    type="practice_hobby"
+                    label={`${def.icon} ${verb} ${name}`}
+                    cost={`1 ${t.game.teUnit}`}
+                    disabled={!hasTime}
+                    warning={!hasTime ? t.game.noTime : undefined}
+                    onClick={() => { practiceHobby(hobbyId, location.id); onClose() }}
+                  />
+                )
+              })}
+            </div>
+          )}
 
           <div className="pt-1 border-t border-slate-800">
             <button

@@ -126,6 +126,7 @@ export const BOARD_LOCATIONS: BoardLocation[] = [
     linkedLocationIds: ['apartment_budget', 'apartment_mid'],
     actions: [
       { type: 'study', label: 'Taka námskeið', timeCost: 1, moneyCost: 300, description: 'Fljótlegra en skóli en minna þekking' },
+      { type: 'practice_hobby', label: 'Æfa forritun', timeCost: 1, description: 'Æfa hobbyið "forritun"' },
     ],
   },
 

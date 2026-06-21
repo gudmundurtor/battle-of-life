@@ -50,6 +50,13 @@ export interface ActionResult {
   effects: StatEffect[]
   moneyDelta: number
   messages: string[]
+  /**
+   * Stable, language-agnostic outcome code. The client maps this to a localized
+   * string. `messages` stays in Icelandic and is used only for internal logs.
+   */
+  code?: string
+  /** Dynamic values referenced by the localized message for `code`. */
+  codeParams?: Record<string, string | number>
   triggeredEventId?: string
 }
 

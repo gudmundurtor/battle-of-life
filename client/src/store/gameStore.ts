@@ -11,6 +11,7 @@ import {
 } from '@jones/shared'
 import type { HobbyLevel } from '@jones/shared'
 import { getTranslations } from '../i18n'
+import { translateActionResult } from '../i18n/actionResult'
 import { useLanguageStore } from './languageStore'
 
 function t() {
@@ -123,7 +124,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
     const { state: newState, result } = performAction(gameState, localPlayerId, action)
     set({
       gameState: newState,
-      statusMessage: result.success ? (result.messages[0] ?? null) : (result.messages[0] ?? 'Villa'),
+      statusMessage: translateActionResult(result, t()),
     })
   },
 
@@ -146,7 +147,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
       gameState: newState,
       showMealPicker: false,
       mealPickerLocationId: null,
-      statusMessage: result.messages[0] ?? null,
+      statusMessage: translateActionResult(result, t()),
     })
   },
 
@@ -301,7 +302,7 @@ export const useGameStore = create<GameStore>()(persist((set, get) => ({
 
     const result = resolveEventChoice(player, eventDef, choiceId, gameState.week)
     if (!result.success) {
-      set({ statusMessage: result.messages[0] ?? 'Villa' })
+      set({ statusMessage: result.messages[0] ?? t().actionMsg.error })
       return
     }
 

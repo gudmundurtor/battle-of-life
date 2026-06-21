@@ -82,6 +82,34 @@ export interface Translations {
     close: string
   }
 
+  // Localized outcome messages for engine ActionResult `code` values.
+  actionMsg: {
+    notYourTurn: string
+    locationNotFound: string
+    actionUnavailable: string
+    notEnoughTime: string
+    notEnoughMoney: string
+    notWorking: string
+    workplaceNotFound: string
+    hobbyNotFound: string
+    dishNotFound: string
+    unknownAction: string
+    socialized: string
+    rested: string
+    exercised: string
+    boughtClothes: string
+    boughtFood: string
+    upgradedHousing: string
+    groupSession: string
+    formedGroup: string
+    joinedGroup: string
+    worked: (title: string) => string
+    studied: (amount: number) => string
+    practiced: (name: string) => string
+    boughtMeal: (name: string) => string
+    error: string
+  }
+
   rules: {
     button: string
     title: string

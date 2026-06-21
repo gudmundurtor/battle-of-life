@@ -22,6 +22,7 @@ export { HOBBY_DEFINITIONS, getHobbyById } from './data/hobbies.js'
 export { EVENT_DEFINITIONS, getEventById } from './data/events.js'
 export { GOAL_DEFINITIONS, getGoalById } from './data/goals.js'
 export { BOARD_LOCATIONS, getLocationById, STARTING_LOCATION_ID } from './data/board.js'
+export { HOBBY_VENUES, HOME_HOBBY_IDS, getVenueHobbyId } from './data/hobbyVenues.js'
 export { MENU_ITEMS, getMenuItemById, getMenuItemsByLocation } from './data/menus.js'
 export { HOUSING, HOUSING_TIER_BY_LOCATION, getHousing, getHousingLocationId, getWeeklyRent, getUpgradeTargetTier, getDowngradeTier } from './data/housing.js'
 
