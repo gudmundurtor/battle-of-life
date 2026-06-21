@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useGameStore } from './store/gameStore'
 import { LobbyView } from './views/LobbyView'
 import { GoalSelectionView } from './views/GoalSelectionView'
@@ -6,6 +7,14 @@ import { GameOverView } from './views/GameOverView'
 
 export default function App() {
   const { gameState } = useGameStore()
+
+  useEffect(() => {
+    const blockTab = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') e.preventDefault()
+    }
+    window.addEventListener('keydown', blockTab)
+    return () => window.removeEventListener('keydown', blockTab)
+  }, [])
 
   if (!gameState) return <LobbyView />
 

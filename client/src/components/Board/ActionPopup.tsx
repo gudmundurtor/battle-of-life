@@ -4,6 +4,7 @@ import { useGameStore } from '../../store/gameStore'
 import { useT } from '../../i18n'
 import { ACTION_ICONS, ACTION_COLORS } from '../../utils/player'
 import { useEscapeKey } from '../../utils/useEscapeKey'
+import { useListNav } from '../../utils/useListNav'
 
 interface ActionPopupProps {
   locationId: string
@@ -17,6 +18,7 @@ export function ActionPopup({ locationId, gameState, localPlayerId, anchorPct, o
   const { doAction, openJobPicker, openMealPicker, practiceHobby, endMyTurn } = useGameStore()
   const t = useT()
   useEscapeKey(onClose)
+  const listRef = useListNav<HTMLDivElement>()
 
   const player = gameState.players[localPlayerId]
   const location = BOARD_LOCATIONS.find(l => l.id === locationId)
@@ -62,7 +64,7 @@ export function ActionPopup({ locationId, gameState, localPlayerId, anchorPct, o
       {!isMyTurn ? (
         <div className="px-3 py-4 text-center text-xs text-slate-600">{t.game.waitingForTurn}</div>
       ) : (
-        <div className="p-2 space-y-1.5 max-h-72 overflow-y-auto">
+        <div ref={listRef} className="p-2 space-y-1.5 max-h-72 overflow-y-auto">
           {location.actions
             .filter(action => action.type !== 'rest' || location.id === getHousingLocationId(player.housingTier))
             .map(action => {
@@ -165,7 +167,7 @@ export function ActionPopup({ locationId, gameState, localPlayerId, anchorPct, o
           <div className="pt-1 border-t border-slate-800">
             <button
               onClick={() => { endMyTurn(); onClose() }}
-              className="w-full text-xs text-slate-500 hover:text-slate-300 py-1.5 text-center transition-colors cursor-pointer rounded"
+              className="w-full text-xs text-slate-500 hover:text-slate-300 py-1.5 text-center transition-colors cursor-pointer rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               {t.game.endTurn}
             </button>
@@ -186,7 +188,7 @@ function PopupAction({ type, label, cost, disabled, warning, onClick }: {
     <button
       onClick={onClick}
       disabled={disabled}
-      className="w-full text-left rounded-lg border transition-all duration-100 overflow-hidden"
+      className="w-full text-left rounded-lg border transition-all duration-100 overflow-hidden focus:outline-none focus:ring-2 focus:ring-blue-400"
       style={{
         borderColor: disabled ? '#1E293B' : `${color}50`,
         background: disabled ? 'rgba(15,23,42,0.2)' : `${color}15`,

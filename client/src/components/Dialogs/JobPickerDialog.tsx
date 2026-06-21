@@ -3,6 +3,7 @@ import type { GameState, BoardLocation } from '@jones/shared'
 import { useGameStore } from '../../store/gameStore'
 import { useT } from '../../i18n'
 import { useEscapeKey } from '../../utils/useEscapeKey'
+import { useListNav } from '../../utils/useListNav'
 import { Button } from '../UI/Button'
 
 interface JobPickerDialogProps {
@@ -15,6 +16,7 @@ export function JobPickerDialog({ gameState, localPlayerId, locationId }: JobPic
   const { applyForJob, closeJobPicker } = useGameStore()
   const t = useT()
   useEscapeKey(closeJobPicker)
+  const listRef = useListNav<HTMLDivElement>()
   const player = gameState.players[localPlayerId]
   const location = BOARD_LOCATIONS.find(l => l.id === locationId)
 
@@ -51,7 +53,7 @@ export function JobPickerDialog({ gameState, localPlayerId, locationId }: JobPic
           <button onClick={closeJobPicker} className="text-slate-500 hover:text-slate-300 text-xl cursor-pointer">×</button>
         </div>
 
-        <div className="overflow-y-auto space-y-2 flex-1">
+        <div ref={listRef} className="overflow-y-auto space-y-2 flex-1">
           {jobs.map(job => {
             const meetsReqs = Object.entries(job.requirements).every(
               ([stat, min]) => (player.stats as unknown as Record<string, number>)[stat] >= (min as number),
@@ -67,6 +69,7 @@ export function JobPickerDialog({ gameState, localPlayerId, locationId }: JobPic
                 disabled={!meetsReqs || isCurrent}
                 className={`
                   w-full text-left p-3 rounded-xl border transition-all duration-150
+                  focus:outline-none focus:ring-2 focus:ring-blue-400
                   ${isCurrent
                     ? 'border-blue-600 bg-blue-900/20 cursor-default'
                     : meetsReqs

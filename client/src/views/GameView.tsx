@@ -73,6 +73,13 @@ export function GameView() {
   const isMyTurn = currentPlayerId === localPlayerId
   const otherPlayerIds = gameState.playerOrder.filter(id => id !== localPlayerId)
 
+  // Board keyboard navigation is suppressed while any overlay/dialog is open, so
+  // arrows and Enter drive the dialog (or nothing) instead of the board beneath.
+  const overlayOpen =
+    showHandoff || showRules || showNews || showStandings || showQuitConfirm ||
+    !!aiTurnRecap || showJobPicker || showMealPicker ||
+    gameState.phase === 'event_resolution'
+
   // Þegar tölvuleikmaður (Georg) er á ferð sýnum við HANS upplýsingar hægra
   // megin (auður, þekking o.s.frv.) svo notandinn sjái hvað hann er með.
   const hudPlayer = (!isMyTurn && currentPlayer?.isAI) ? currentPlayer : localPlayer
@@ -200,6 +207,7 @@ export function GameView() {
             localPlayerId={localPlayerId}
             selectedLocationId={selectedLocationId ?? localPlayer?.locationId ?? null}
             onSelectLocation={setSelectedLocationId}
+            keyboardEnabled={!overlayOpen}
           />
         </div>
 

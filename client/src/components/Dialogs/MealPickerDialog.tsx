@@ -3,6 +3,7 @@ import type { GameState } from '@jones/shared'
 import { useGameStore } from '../../store/gameStore'
 import { useT } from '../../i18n'
 import { useEscapeKey } from '../../utils/useEscapeKey'
+import { useListNav } from '../../utils/useListNav'
 import { Button } from '../UI/Button'
 
 interface MealPickerDialogProps {
@@ -21,6 +22,7 @@ export function MealPickerDialog({ gameState, localPlayerId, locationId }: MealP
   const { buyMeal, closeMealPicker } = useGameStore()
   const t = useT()
   useEscapeKey(closeMealPicker)
+  const listRef = useListNav<HTMLDivElement>()
   const player = gameState.players[localPlayerId]
   const location = BOARD_LOCATIONS.find(l => l.id === locationId)
   const dishes = getMenuItemsByLocation(locationId)
@@ -40,7 +42,7 @@ export function MealPickerDialog({ gameState, localPlayerId, locationId }: MealP
           <button onClick={closeMealPicker} className="text-slate-500 hover:text-slate-300 text-xl cursor-pointer">×</button>
         </div>
 
-        <div className="overflow-y-auto space-y-2 flex-1">
+        <div ref={listRef} className="overflow-y-auto space-y-2 flex-1">
           {dishes.map(dish => {
             const canAfford = player.money >= dish.price
             const dt = t.dishes[dish.id]
@@ -52,6 +54,7 @@ export function MealPickerDialog({ gameState, localPlayerId, locationId }: MealP
                 disabled={!canAfford}
                 className={`
                   w-full text-left p-3 rounded-xl border transition-all duration-150
+                  focus:outline-none focus:ring-2 focus:ring-blue-400
                   ${canAfford
                     ? 'border-slate-600 hover:border-amber-500 hover:bg-slate-800 cursor-pointer'
                     : 'border-slate-800 opacity-40 cursor-not-allowed'}

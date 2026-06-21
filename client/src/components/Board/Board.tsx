@@ -1,9 +1,10 @@
-import { useState, useRef, useLayoutEffect } from 'react'
+import { useState, useRef, useLayoutEffect, useEffect } from 'react'
 import { BOARD_LOCATIONS } from '@jones/shared'
 import type { GameState } from '@jones/shared'
 import { BoardLocationCard } from './BoardLocationCard'
 import { ActionPopup } from './ActionPopup'
 import { BoardCharacter, lastActionVisual } from './BoardCharacter'
+import { playNav, playWoof } from '../../utils/sound'
 
 // Regular 5-column × 4-row grid. Each tile is a wide (landscape) rectangle
 // centered inside its grass cell, leaving a margin of grass on every side.
@@ -93,6 +94,30 @@ const PALM_TREES: Array<{ x: number; y: number; size: number }> = [
   { x: 85, y: 68, size: 26 },
 ]
 
+// Big boulders scattered along the sandy beach (2 on the bottom strip, 3 on the right wing).
+const ROCKS: Array<{ x: number; y: number; size: number }> = [
+  { x: 26, y: 91, size: 40 },
+  { x: 60, y: 92, size: 36 },
+  { x: 90, y: 24, size: 34 },
+  { x: 91.5, y: 45, size: 34 },
+  { x: 91, y: 66, size: 38 },
+]
+
+// A large rock sitting out in the sea off the right wing.
+const SEA_ROCK = { x: 96.5, y: 52, size: 64 }
+
+// Goats grazing on the open grass around the town's outskirts — the southern
+// meadow strip (kept above the beach) and the right-wing grove.
+const GOATS: Array<{ x: number; y: number; size: number; flip?: boolean }> = [
+  { x: 15, y: 85, size: 22, flip: true },
+  { x: 32, y: 86, size: 22 },
+  { x: 44, y: 85, size: 24 },
+  { x: 60, y: 85, size: 22, flip: true },
+  { x: 72, y: 80, size: 22 },
+  { x: 83, y: 80, size: 21, flip: true },
+  { x: 77, y: 67, size: 22 },
+]
+
 function PalmTree({ size = 24 }: { size?: number }) {
   return (
     <svg
@@ -152,14 +177,115 @@ function Tree({ size = 20 }: { size?: number }) {
   )
 }
 
+function Rock({ size = 32 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size * 0.75}
+      viewBox="0 0 32 24"
+      style={{
+        display: 'block',
+        filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.4))',
+      }}
+    >
+      {/* Shadow on the sand */}
+      <ellipse cx="16" cy="22" rx="13" ry="2" fill="rgba(0,0,0,0.22)" />
+      {/* Main boulder */}
+      <path d="M3 20 Q 2 11 9 8 Q 14 4 21 8 Q 29 11 28 20 Z" fill="#6B7280" />
+      {/* Lit top facet */}
+      <path d="M9 8 Q 14 4 21 8 Q 18 11 14 11 Q 11 11 9 8 Z" fill="#9CA3AF" />
+      {/* Shaded right facet */}
+      <path d="M21 8 Q 29 11 28 20 L 20 20 Q 19 13 21 8 Z" fill="#4B5563" />
+      {/* Companion rock */}
+      <path d="M22 20 Q 22 15 27 15 Q 31 16 30 20 Z" fill="#6B7280" />
+      <path d="M27 15 Q 31 16 30 20 L 26 20 Q 26 17 27 15 Z" fill="#4B5563" />
+    </svg>
+  )
+}
+
+function Goat({ size = 22, flip = false }: { size?: number; flip?: boolean }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 28 28"
+      style={{
+        display: 'block',
+        transform: flip ? 'scaleX(-1)' : undefined,
+        filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.4))',
+      }}
+    >
+      {/* Shadow */}
+      <ellipse cx="14" cy="25" rx="9" ry="1.6" fill="rgba(0,0,0,0.28)" />
+      {/* Legs */}
+      <rect x="7"    y="16" width="1.8" height="8" rx="0.6" fill="#9CA3AF" />
+      <rect x="10.5" y="16" width="1.8" height="8" rx="0.6" fill="#9CA3AF" />
+      <rect x="16"   y="16" width="1.8" height="8" rx="0.6" fill="#9CA3AF" />
+      <rect x="19.5" y="16" width="1.8" height="8" rx="0.6" fill="#9CA3AF" />
+      {/* Body */}
+      <ellipse cx="14" cy="13" rx="9" ry="5.5" fill="#E5E7EB" />
+      {/* Tail */}
+      <path d="M22.5 10 q 3 -1 1.5 2.5" stroke="#E5E7EB" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      {/* Neck */}
+      <path d="M6 12 Q 3 11 4 7 L 7 8 Q 7 11 9 12 Z" fill="#F3F4F6" />
+      {/* Head */}
+      <ellipse cx="3.8" cy="7.5" rx="3" ry="2.3" fill="#F3F4F6" />
+      {/* Snout */}
+      <ellipse cx="1.4" cy="8.2" rx="1.2" ry="1" fill="#E5E7EB" />
+      {/* Ear */}
+      <path d="M5.5 7 q 2.2 -0.8 2.2 1.2 q -1.2 0.8 -2.2 -0.2 Z" fill="#D1D5DB" />
+      {/* Horns — dark, thick, swept up and back so they read clearly */}
+      <path d="M3 5.2 q -1.4 -3.4 1.6 -4.6" stroke="#5B4636" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d="M4.7 5.2 q -1 -3.6 2.1 -4.2" stroke="#5B4636" strokeWidth="2" fill="none" strokeLinecap="round" />
+      {/* Eye */}
+      <circle cx="3" cy="7.3" r="0.55" fill="#374151" />
+      {/* Beard */}
+      <path d="M2 9.4 l 0 2.2" stroke="#D1D5DB" strokeWidth="1" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 // Horizontal avenue Y positions depend on actual tile height (which depends on
 // the board container's aspect ratio). They're computed at runtime in the component.
+
+// Grid layout of location ids, mirroring POS, for arrow-key navigation.
+// `null` marks the empty cell (col 4, row 3).
+const NAV_GRID: (string | null)[][] = [
+  ['online_courses', 'library', 'university', 'school', 'hospital'],
+  ['apartment_budget', 'employment_office', 'tech_company', 'office_building', 'gym'],
+  ['apartment_mid', 'retail_store', 'park', 'art_studio', 'music_studio'],
+  ['apartment_luxury', 'market', 'clothing_store', 'social_club', null],
+]
+
+// Move selection one step in the given arrow direction, skipping empty cells.
+// Returns the next location id, or null if there is none in that direction.
+function moveSelection(current: string, key: string): string | null {
+  let r = -1
+  let c = -1
+  for (let i = 0; i < NAV_GRID.length; i++) {
+    const j = NAV_GRID[i].indexOf(current)
+    if (j !== -1) { r = i; c = j; break }
+  }
+  if (r === -1) return null
+  const dr = key === 'ArrowUp' ? -1 : key === 'ArrowDown' ? 1 : 0
+  const dc = key === 'ArrowLeft' ? -1 : key === 'ArrowRight' ? 1 : 0
+  let nr = r + dr
+  let nc = c + dc
+  while (nr >= 0 && nr < NAV_GRID.length && nc >= 0 && nc < NAV_GRID[nr].length) {
+    const id = NAV_GRID[nr][nc]
+    if (id) return id
+    nr += dr
+    nc += dc
+  }
+  return null
+}
 
 interface BoardProps {
   gameState: GameState
   localPlayerId: string
   selectedLocationId: string | null
   onSelectLocation: (id: string) => void
+  keyboardEnabled?: boolean
 }
 
 interface PopupData {
@@ -168,7 +294,7 @@ interface PopupData {
   t: number
 }
 
-export function Board({ gameState, localPlayerId, selectedLocationId, onSelectLocation }: BoardProps) {
+export function Board({ gameState, localPlayerId, selectedLocationId, onSelectLocation, keyboardEnabled = true }: BoardProps) {
   const localPlayer = gameState.players[localPlayerId]
   const [popup, setPopup] = useState<PopupData | null>(null)
 
@@ -209,8 +335,44 @@ export function Board({ gameState, localPlayerId, selectedLocationId, onSelectLo
       return
     }
     const pos = POS[locationId]
-    if (pos) setPopup({ locationId, l: pos.l, t: pos.t })
+    if (pos) {
+      setPopup({ locationId, l: pos.l, t: pos.t })
+      playWoof()
+    }
   }
+
+  // Keyboard navigation: arrows move the selected tile, Enter opens its action
+  // popup. While the popup is open it handles its own arrow/Enter navigation,
+  // so we bail out here.
+  useEffect(() => {
+    if (!keyboardEnabled) return
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      if (popup) return
+
+      const current = selectedLocationId ?? localPlayer?.locationId
+      if (!current) return
+
+      if (e.key.startsWith('Arrow')) {
+        e.preventDefault()
+        const next = moveSelection(current, e.key)
+        if (next && next !== current) {
+          onSelectLocation(next)
+          playNav()
+        }
+      } else if (e.key === 'Enter') {
+        e.preventDefault()
+        const pos = POS[current]
+        if (pos) {
+          setPopup({ locationId: current, l: pos.l, t: pos.t })
+          playWoof()
+        }
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [popup, selectedLocationId, localPlayer?.locationId, onSelectLocation, keyboardEnabled])
 
   return (
     <div
@@ -338,6 +500,51 @@ export function Board({ gameState, localPlayerId, selectedLocationId, onSelectLo
         </div>
       ))}
 
+      {/* Big boulders on the sandy beach */}
+      {ROCKS.map((rock, i) => (
+        <div
+          key={`rock-${i}`}
+          className="absolute pointer-events-none"
+          style={{
+            left: `${rock.x}%`,
+            top: `${rock.y}%`,
+            transform: 'translate(-50%, -50%)',
+            zIndex: 1,
+          }}
+        >
+          <Rock size={rock.size} />
+        </div>
+      ))}
+
+      {/* Large rock out in the sea */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          left: `${SEA_ROCK.x}%`,
+          top: `${SEA_ROCK.y}%`,
+          transform: 'translate(-50%, -50%)',
+          zIndex: 1,
+        }}
+      >
+        <Rock size={SEA_ROCK.size} />
+      </div>
+
+      {/* Goats grazing on the grass */}
+      {GOATS.map((goat, i) => (
+        <div
+          key={`goat-${i}`}
+          className="absolute pointer-events-none"
+          style={{
+            left: `${goat.x}%`,
+            top: `${goat.y}%`,
+            transform: 'translate(-50%, -50%)',
+            zIndex: 1,
+          }}
+        >
+          <Goat size={goat.size} flip={goat.flip} />
+        </div>
+      ))}
+
       {/* Horizontal avenues — end at the last vertical street (no right-arm overhang) */}
       {HORIZONTAL_AVENUES_Y.map(y => (
         <HorizontalRoad
@@ -437,7 +644,7 @@ export function Board({ gameState, localPlayerId, selectedLocationId, onSelectLo
               location={loc}
               isSelected={selectedLocationId === loc.id}
               isCurrentLocation={localPlayer?.locationId === loc.id}
-              onClick={() => { onSelectLocation(loc.id); setPopup(null) }}
+              onClick={() => { onSelectLocation(loc.id); setPopup(null); playNav() }}
               onActionClick={e => handleActionClick(e, loc.id)}
             />
           </div>

@@ -2,6 +2,7 @@ import { EVENT_DEFINITIONS } from '@jones/shared'
 import type { GameState } from '@jones/shared'
 import { useGameStore } from '../../store/gameStore'
 import { useT } from '../../i18n'
+import { useListNav } from '../../utils/useListNav'
 
 interface EventDialogProps {
   gameState: GameState
@@ -11,6 +12,7 @@ interface EventDialogProps {
 export function EventDialog({ gameState, localPlayerId }: EventDialogProps) {
   const { resolveEvent } = useGameStore()
   const t = useT()
+  const listRef = useListNav<HTMLDivElement>()
 
   const pending = gameState.pendingEvents.find(e => e.targetPlayerId === localPlayerId)
   if (!pending) return null
@@ -32,7 +34,7 @@ export function EventDialog({ gameState, localPlayerId }: EventDialogProps) {
         </div>
 
         {/* Choices */}
-        <div className="space-y-3">
+        <div ref={listRef} className="space-y-3">
           {eventDef.choices.map(choice => {
             const canAfford = !choice.moneyRequired || player.money >= choice.moneyRequired
             const meetsStats = !choice.statRequirements || Object.entries(choice.statRequirements).every(
@@ -48,6 +50,7 @@ export function EventDialog({ gameState, localPlayerId }: EventDialogProps) {
                 disabled={!available}
                 className={`
                   w-full text-left p-4 rounded-xl border transition-all duration-150
+                  focus:outline-none focus:ring-2 focus:ring-blue-400
                   ${available
                     ? 'border-slate-600 hover:border-blue-500 hover:bg-slate-800 cursor-pointer'
                     : 'border-slate-800 opacity-50 cursor-not-allowed'}

@@ -2,7 +2,7 @@ import type { Translations } from './types'
 
 export const da: Translations = {
   lobby: {
-    title: 'Livskampen',
+    title: 'Livskampen i Gedeby',
     tagline: 'Kan du vinde livskampen?',
     players: 'Spillere',
     playerName: (n) => `Spiller ${n}`,

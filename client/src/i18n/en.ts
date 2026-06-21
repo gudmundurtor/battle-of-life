@@ -2,7 +2,7 @@ import type { Translations } from './types'
 
 export const en: Translations = {
   lobby: {
-    title: 'The Battle of Life',
+    title: 'The Battle of Life in Goat Town',
     tagline: 'Can you win the battle of life?',
     players: 'Players',
     playerName: (n) => `Player ${n}`,

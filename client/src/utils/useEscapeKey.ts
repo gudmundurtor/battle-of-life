@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { playNav } from './sound'
 
 /**
  * Kallar `handler` þegar ýtt er á Esc. Notað til að loka gluggum/aðgerðum.
@@ -10,6 +11,7 @@ export function useEscapeKey(handler: () => void, enabled = true): void {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopPropagation()
+        playNav()
         handler()
       }
     }
