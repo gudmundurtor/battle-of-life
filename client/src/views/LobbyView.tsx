@@ -20,6 +20,11 @@ const PLAYER_COLORS = ['#3B82F6', '#EF4444', '#22C55E', '#F59E0B']
 const LANG_FLAGS: Record<Language, string> = { is: '🇮🇸', en: '🇬🇧', da: '🇩🇰' }
 const LANG_LABELS: Record<Language, string> = { is: 'Íslenska', en: 'English', da: 'Dansk' }
 
+// Online play needs a reachable realtime server. In local dev it falls back to
+// localhost:3001; in production it only shows up once VITE_SERVER_URL is set, so
+// the live site never offers a button that can't connect.
+const ONLINE_ENABLED = import.meta.env.DEV || !!import.meta.env.VITE_SERVER_URL
+
 export function LobbyView() {
   const { online } = useGameStore()
 
@@ -43,6 +48,7 @@ function LobbySetup() {
 
   // A ?room=CODE link drops the player straight into online join mode.
   useEffect(() => {
+    if (!ONLINE_ENABLED) return
     const code = new URLSearchParams(window.location.search).get('room')
     if (code) {
       setMode('online')
@@ -124,6 +130,7 @@ function LobbySetup() {
         </div>
 
         {/* Local / Online mode toggle */}
+        {ONLINE_ENABLED && (
         <div className="grid grid-cols-2 gap-2">
           {(['local', 'online'] as const).map(m => (
             <button
@@ -139,6 +146,7 @@ function LobbySetup() {
             </button>
           ))}
         </div>
+        )}
 
         {mode === 'local' ? (
           <>
